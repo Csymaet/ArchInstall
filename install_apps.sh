@@ -11,8 +11,10 @@ run() {
     log INFO "DOWNLOAD APPS CSV" "$output"
     apps_path="$(download-app-csv "$url_installer")"
     log INFO "APPS CSV DOWNLOADED AT: $apps_path" "$output"
+    ## 为steam添加multilib仓库
     add-multilib-repo
     log INFO "MULTILIB ADDED" "$output"
+    ## 显示软件选择界面
     dialog-welcome
     dialog-choose-apps ch
     choices=$(cat ch) && rm ch
@@ -21,17 +23,23 @@ run() {
     log INFO "GENERATED LINES: $lines" "$output"
     apps="$(extract-app-names "$lines")"
     log INFO "APPS: $apps" "$output"
+    ## 更新系统
     update-system
     log INFO "UPDATED SYSTEM" "$output"
+    ## ???
     delete-previous-aur-queue
     log INFO "DELETED PREVIOUS AUR QUEUE" "$output"
+    ## 开始安装
     dialog-install-apps "$apps" "$dry_run" "$output"
     log INFO "APPS INSTALLED" "$output"
+    ## ??
     disable-horrible-beep
     log INFO "HORRIBLE BEEP DISABLED" "$output"
+    ## 设置sudo
     set-user-permissions
     log INFO "USER PERMISSIONS SET" "$output"
-
+    
+    ## 进入下一步"install_user"
     continue-install "$url_installer" "$name"
 }
 

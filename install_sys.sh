@@ -7,10 +7,11 @@ set -euo pipefail
 
 # YOU NEED TO MODIFY YOUR INSTALL URL
 url-installer() {
-    echo "https://raw.githubusercontent.com/Phantas0s/ArchInstall/master"
+    echo "https://raw.githubusercontent.com/Csymaet/ArchInstall/master"
 }
 
 run() {
+    ## 有两个参数，分别是-o和-d
     local dry_run=${dry_run:-false}
     local output=${output:-/dev/tty2}
 
@@ -26,44 +27,54 @@ run() {
 
     log INFO "DRY RUN? $dry_run" "$output"
 
+    # 安装"dialog"
     install-dialog
     dialog-are-you-sure
 
+    ## 输入主机名称
     local hostname
     dialog-name-of-computer hn
     hostname=$(cat hn) && rm hn
     log INFO "HOSTNAME: $hostname" "$output"
 
+    ## 选择磁盘
     local disk
     dialog-what-disk-to-use hd
     disk=$(cat hd) && rm hd
     log INFO "DISK CHOSEN: $disk" "$output"
 
+    ## swap分区大小
     local swap_size
     dialog-what-swap-size swaps
     swap_size=$(cat swaps) && rm swaps
     log INFO "SWAP SIZE: $swap_size" "$output"
 
+    ## 更新系统时钟
     log INFO "SET TIME" "$output"
     set-timedate
 
+    ## 选择格盘方式
     local wiper
     dialog-how-wipe-disk "$disk" dfile
     wiper=$(cat dfile) && rm dfile
     log INFO "WIPER CHOICE: $wiper" "$output"
 
+    ## 使用选择的方式格盘
     [[ "$dry_run" = false ]] \
         && log INFO "ERASE DISK" "$output" \
         && erase-disk "$wiper" "$disk"
 
+    ## 创建分区
     [[ "$dry_run" = false ]] \
         && log INFO "CREATE PARTITIONS" "$output" \
         && fdisk-partition "$disk" "$(boot-partition "$(is-uefi)")" "$swap_size"
 
+    ## 格式化分区
     [[ "$dry_run" = false ]] \
         && log INFO "FORMAT PARTITIONS" "$output" \
         && format-partitions "$disk" "$(is-uefi)"
 
+    ## 创建临时文件
     log INFO "CREATE VAR FILES" "$output"
     echo "$(is-uefi)" > /mnt/var_uefi
     echo "$disk" > /mnt/var_disk
@@ -72,10 +83,12 @@ run() {
     echo "$dry_run" > /mnt/var_dry_run
     url-installer > /mnt/var_url_installer
 
+    ## 安装系统
     [[ "$dry_run" = false ]] \
         && log INFO "BEGIN INSTALL ARCH LINUX" "$output" \
         && install-arch-linux
 
+    ## 进入下一步，进入新系统中执行"install-chroot"
     [[ "$dry_run" = false ]] \
         && log INFO "BEGIN CHROOT SCRIPT" "$output" \
         && install-chroot "$(url-installer)"
@@ -194,6 +207,7 @@ partprobe "$hd"
 #p - primary partition
 #e - extended partition
 #w - write the table to disk and exit
+#空行表示回车
 fdisk "$hd" <<EOF
 g
 n

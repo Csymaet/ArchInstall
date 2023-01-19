@@ -8,12 +8,16 @@ run() {
     # dry_run=$(cat /var_dry_run)
 
     log INFO "CREATE DIRECTORIES" "$output"
+    ## 在家目录下创建一些文件夹
     create-directories
     log INFO "INSTALL YAY" "$output"
+    ## 安装yay
     install-yay "$output"
     log INFO "INSTALL AUR APPS" "$output"
+    ## 安装aur应用
     install-aur-apps "$output"
     log INFO "INSTALL DOTFILES" "$output"
+    ## 下载点文件
     install-dotfiles
 }
 

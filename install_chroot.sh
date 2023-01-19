@@ -14,35 +14,44 @@ run() {
     url_installer=$(cat /var_url_installer)
     dry_run=$(cat /var_dry_run)
 
+    ## 安装dialog
     log INFO "INSTALL DIALOG" "$output"
     install-dialog
 
+    ## 安装并设置grub
     log INFO "INSTALL GRUB ON $hd WITH UEFI $uefi" "$output"
     install-grub "$hd" "$uefi"
 
+    ## 设置硬件时间
     log INFO "SET HARDWARE CLOCK" "$output"
     set-hardware-clock
 
+    ## 设置时区
     log INFO "SET TIMEZONE" "$output"
     # timedatectl set-timezone "Europe/Berlin"
     ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
     hwclock --systohc
 
+    ## 写入主机名
     log INFO "WRITE HOSTNAME: $hostname" "$output" \
     write-hostname "$hostname"
 
+    ## 配置locale
     log INFO "CONFIGURE LOCALE" "$output"
     configure-locale "en_US.UTF-8" "UTF-8"
 
+    ## root用户设置
     log INFO "ADD ROOT" "$output"
     dialog --title "root password" --msgbox "It's time to add a password for the root user" 10 60
     config_user root
 
+    ## 添加用户
     log INFO "ADD USER" "$output"
     dialog --title "Add User" --msgbox "We can't always be root. Too many responsibilities. Let's create another user." 10 60
 
     config_user
 
+    ## 进入下一步，安装应用
     continue-install "$url_installer"
 }
 

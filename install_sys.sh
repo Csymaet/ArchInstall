@@ -27,6 +27,10 @@ run() {
 
     log INFO "DRY RUN? $dry_run" "$output"
 
+    ## 更新系统时钟
+    log INFO "SET TIME" "$output"
+    set-timedate
+
     # 安装"dialog"
     install-dialog
     dialog-are-you-sure
@@ -44,30 +48,26 @@ run() {
     log INFO "DISK CHOSEN: $disk" "$output"
 
     ## swap分区大小
-    local swap_size
-    dialog-what-swap-size swaps
-    swap_size=$(cat swaps) && rm swaps
-    log INFO "SWAP SIZE: $swap_size" "$output"
-
-    ## 更新系统时钟
-    log INFO "SET TIME" "$output"
-    set-timedate
+    # local swap_size
+    # dialog-what-swap-size swaps
+    # swap_size=$(cat swaps) && rm swaps
+    # log INFO "SWAP SIZE: $swap_size" "$output"
 
     ## 选择格盘方式
-    local wiper
-    dialog-how-wipe-disk "$disk" dfile
-    wiper=$(cat dfile) && rm dfile
-    log INFO "WIPER CHOICE: $wiper" "$output"
+    # local wiper
+    # dialog-how-wipe-disk "$disk" dfile
+    # wiper=$(cat dfile) && rm dfile
+    # log INFO "WIPER CHOICE: $wiper" "$output"
 
     ## 使用选择的方式格盘
-    [[ "$dry_run" = false ]] \
-        && log INFO "ERASE DISK" "$output" \
-        && erase-disk "$wiper" "$disk"
+    # [[ "$dry_run" = false ]] \
+    #     && log INFO "ERASE DISK" "$output" \
+    #     && erase-disk "$wiper" "$disk"
 
     ## 创建分区
     [[ "$dry_run" = false ]] \
         && log INFO "CREATE PARTITIONS" "$output" \
-        && fdisk-partition "$disk" "$(boot-partition "$(is-uefi)")" "$swap_size"
+        && fdisk-partition "$disk" "$(boot-partition "$(is-uefi)")" # "$swap_size"
 
     ## 格式化分区
     [[ "$dry_run" = false ]] \
@@ -198,7 +198,7 @@ boot-partition() {
 fdisk-partition() {
 local -r hd=${1:?}
 local -r boot_partition_type=${2:?}
-local -r swap_size=${3:?}
+# local -r swap_size=${3:?}
 
 partprobe "$hd"
 
@@ -213,13 +213,13 @@ g
 n
 
 
-+512M
++2G
 t
 $boot_partition_type
 n
 
 
-+${swap_size}G
++100G
 n
 
 
@@ -234,11 +234,15 @@ format-partitions() {
 
     echo "$hd" | grep -E 'nvme' &> /dev/null && hd="${hd}p"
 
-    mkswap "${hd}2"
-    swapon "${hd}2"
+    # mkswap "${hd}2"
+    # swapon "${hd}2"
+
+    mkfs.ext4 "${hd}2"
+    mount "${hd}2" /mnt
 
     mkfs.ext4 "${hd}3"
-    mount "${hd}3" /mnt
+    mkdir -p /mnt/home
+    mount "${hd}3" /mnt/home
 
     [[ "$uefi" == 1 ]] && \
         mkfs.fat -F32 "${hd}1" && \
@@ -248,7 +252,7 @@ format-partitions() {
 
 
 install-arch-linux() {
-    pacstrap /mnt base base-devel linux linux-firmware
+    pacstrap /mnt linux base base-devel linux-firmware man-db grub efibootmgr iwd dhcpcd git neovim openssh
     genfstab -U /mnt >> /mnt/etc/fstab
 }
 

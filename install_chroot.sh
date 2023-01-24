@@ -29,7 +29,7 @@ run() {
     ## 设置时区
     log INFO "SET TIMEZONE" "$output"
     # timedatectl set-timezone "Europe/Berlin"
-    ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
+    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
     hwclock --systohc
 
     ## 写入主机名
@@ -52,7 +52,7 @@ run() {
     config_user
 
     ## 进入下一步，安装应用
-    continue-install "$url_installer"
+    # continue-install "$url_installer"
 }
 
 log() {
@@ -77,7 +77,7 @@ install-grub() {
     local -r hd=${1:?}
     local -r uefi=${2:?}
 
-    pacman -S --noconfirm grub
+    # pacman -S --noconfirm grub
 
     if [ "$uefi" = 1 ]; then
         pacman -S --noconfirm efibootmgr

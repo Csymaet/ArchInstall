@@ -83,6 +83,10 @@ run() {
     echo "$dry_run" > /mnt/var_dry_run
     url-installer > /mnt/var_url_installer
 
+    ## 选择镜像源
+    log INFO "SELECT MIRROR SOURCE" "$output"
+    select-mirror-source
+
     ## 安装系统
     [[ "$dry_run" = false ]] \
         && log INFO "BEGIN INSTALL ARCH LINUX" "$output" \
@@ -248,6 +252,11 @@ format-partitions() {
         mkfs.fat -F32 "${hd}1" && \
         mkdir -p /mnt/boot/efi && \
         mount "${hd}"1 /mnt/boot/efi
+}
+
+select-mirror-source() {
+    systemctl stop reflector.service
+    sed -i "1i Server = https://mirrors.ustc.edu.cn/archlinux/$repo/os/$arch\nServer = https://mirrors.tuna.tsinghua.edu.cn/archlinux/$repo/os/$arch" /etc/pacman.d/mirrorlist
 }
 
 

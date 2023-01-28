@@ -7,7 +7,8 @@ set -euo pipefail
 
 # YOU NEED TO MODIFY YOUR INSTALL URL
 url-installer() {
-    echo "https://raw.githubusercontent.com/Csymaet/ArchInstall/master"
+    # echo "https://raw.githubusercontent.com/Csymaet/ArchInstall/master"
+    echo "192.168.1.145:8081"
 }
 
 run() {
@@ -27,6 +28,10 @@ run() {
 
     log INFO "DRY RUN? $dry_run" "$output"
 
+    ## 选择镜像源
+    log INFO "SELECT MIRROR SOURCE" "$output"
+    select-mirror-source
+
     ## 更新系统时钟
     log INFO "SET TIME" "$output"
     set-timedate
@@ -37,8 +42,9 @@ run() {
 
     ## 输入主机名称
     local hostname
-    dialog-name-of-computer hn
-    hostname=$(cat hn) && rm hn
+    # dialog-name-of-computer hn
+    # hostname=$(cat hn) && rm hn
+    hostname=eli
     log INFO "HOSTNAME: $hostname" "$output"
 
     ## 选择磁盘
@@ -54,15 +60,15 @@ run() {
     # log INFO "SWAP SIZE: $swap_size" "$output"
 
     ## 选择格盘方式
-    # local wiper
-    # dialog-how-wipe-disk "$disk" dfile
-    # wiper=$(cat dfile) && rm dfile
-    # log INFO "WIPER CHOICE: $wiper" "$output"
+    local wiper
+    dialog-how-wipe-disk "$disk" dfile
+    wiper=$(cat dfile) && rm dfile
+    log INFO "WIPER CHOICE: $wiper" "$output"
 
     ## 使用选择的方式格盘
-    # [[ "$dry_run" = false ]] \
-    #     && log INFO "ERASE DISK" "$output" \
-    #     && erase-disk "$wiper" "$disk"
+    [[ "$dry_run" = false ]] \
+        && log INFO "ERASE DISK" "$output" \
+        && erase-disk "$wiper" "$disk"
 
     ## 创建分区
     [[ "$dry_run" = false ]] \
@@ -82,10 +88,6 @@ run() {
     echo "$output" > /mnt/var_output
     echo "$dry_run" > /mnt/var_dry_run
     url-installer > /mnt/var_url_installer
-
-    ## 选择镜像源
-    log INFO "SELECT MIRROR SOURCE" "$output"
-    select-mirror-source
 
     ## 安装系统
     [[ "$dry_run" = false ]] \
@@ -184,7 +186,7 @@ erase-disk() {
 
     set +e
     case $choice in
-        1) dd if=/dev/zero of="$hd" status=progress 2>&1 | dialog --title "Formatting $hd..." --progressbox --stdout 20 60;;
+        1) dd if=/dev/zero of="$hd" bs=1M status=progress 2>&1 | dialog --title "Formatting $hd..." --progressbox --stdout 20 65;;
         2) shred -v "$hd" | dialog --title "Formatting $hd..." --progressbox --stdout 20 60;;
         3) ;;
     esac
@@ -212,6 +214,7 @@ partprobe "$hd"
 #e - extended partition
 #w - write the table to disk and exit
 #空行表示回车
+#使用fdisk分区
 fdisk "$hd" <<EOF
 g
 n
@@ -248,6 +251,7 @@ format-partitions() {
     mkdir -p /mnt/home
     mount "${hd}3" /mnt/home
 
+    log INFO "$uefi" "$output"
     [[ "$uefi" == 1 ]] && \
         mkfs.fat -F32 "${hd}1" && \
         mkdir -p /mnt/boot/efi && \
@@ -256,12 +260,12 @@ format-partitions() {
 
 select-mirror-source() {
     systemctl stop reflector.service
-    sed -i "1i Server = https://mirrors.ustc.edu.cn/archlinux/$repo/os/$arch\nServer = https://mirrors.tuna.tsinghua.edu.cn/archlinux/$repo/os/$arch" /etc/pacman.d/mirrorlist
+    sed -i "1i Server = https://mirrors.ustc.edu.cn/archlinux/\$repo/os/\$arch\nServer = https://mirrors.tuna.tsinghua.edu.cn/archlinux/\$repo/os/\$arch" /etc/pacman.d/mirrorlist
 }
 
 
 install-arch-linux() {
-    pacstrap /mnt linux base base-devel linux-firmware man-db grub efibootmgr iwd dhcpcd git neovim openssh
+    pacstrap /mnt linux base base-devel linux-firmware grub efibootmgr iwd dhcpcd man-db git neovim openssh
     genfstab -U /mnt >> /mnt/etc/fstab
 }
 

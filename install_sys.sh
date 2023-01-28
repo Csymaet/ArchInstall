@@ -8,6 +8,7 @@ set -euo pipefail
 # YOU NEED TO MODIFY YOUR INSTALL URL
 url-installer() {
     # echo "https://raw.githubusercontent.com/Csymaet/ArchInstall/master"
+    # echo "file:///root" # 如果脚本已下载到本地，则使用这个路径
     echo "192.168.1.145:8081"
 }
 
@@ -60,15 +61,18 @@ run() {
     # log INFO "SWAP SIZE: $swap_size" "$output"
 
     ## 选择格盘方式
-    local wiper
-    dialog-how-wipe-disk "$disk" dfile
-    wiper=$(cat dfile) && rm dfile
-    log INFO "WIPER CHOICE: $wiper" "$output"
+    # local wiper
+    # dialog-how-wipe-disk "$disk" dfile
+    # wiper=$(cat dfile) && rm dfile
+    # log INFO "WIPER CHOICE: $wiper" "$output"
 
     ## 使用选择的方式格盘
-    [[ "$dry_run" = false ]] \
-        && log INFO "ERASE DISK" "$output" \
-        && erase-disk "$wiper" "$disk"
+    # [[ "$dry_run" = false ]] \
+    #     && log INFO "ERASE DISK" "$output" \
+    #     && erase-disk "$wiper" "$disk"
+    
+    ## 擦除文件系统
+    wipe-fs "$disk"
 
     ## 创建分区
     [[ "$dry_run" = false ]] \
@@ -191,6 +195,16 @@ erase-disk() {
         3) ;;
     esac
     set -e
+}
+
+wipe-fs() {
+    local -r hd=${1:?}
+
+    local parts=$(lsblk $hd -ln -o NAME | sort -r)
+    for part in $parts
+    do
+        wipefs -a -f /dev/$part
+    done
 }
 
 boot-partition() {

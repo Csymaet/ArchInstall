@@ -42,12 +42,12 @@ run() {
 
     ## root用户设置
     log INFO "ADD ROOT" "$output"
-    dialog --title "root password" --msgbox "It's time to add a password for the root user" 10 60
+    # dialog --title "root password" --msgbox "It's time to add a password for the root user" 10 60
     config_user root
 
     ## 添加用户
     log INFO "ADD USER" "$output"
-    dialog --title "Add User" --msgbox "We can't always be root. Too many responsibilities. Let's create another user." 10 60
+    # dialog --title "Add User" --msgbox "We can't always be root. Too many responsibilities. Let's create another user." 10 60
 
     config_user
 
@@ -110,22 +110,25 @@ configure-locale() {
 config_user() {
     local name=${1:-none}
 
+    pass1=root
     if [ "$name" == none ]; then
-        dialog --no-cancel --inputbox "Please enter your username" 10 60 2> name
-        name=$(cat name) && rm name
+        # dialog --no-cancel --inputbox "Please enter your username" 10 60 2> name
+        # name=$(cat name) && rm name
+        name=eli
+        pass1=eli
     fi
 
-    dialog --no-cancel --passwordbox "Enter your password" 10 60 2> pass1
-    dialog --no-cancel --passwordbox "Enter your password again. To be sure..." 10 60 2> pass2
+    # dialog --no-cancel --passwordbox "Enter your password" 10 60 2> pass1
+    # dialog --no-cancel --passwordbox "Enter your password again. To be sure..." 10 60 2> pass2
 
-    while [ "$(cat pass1)" != "$(cat pass2)" ]
-    do
-        dialog --no-cancel --passwordbox "Passwords do not match.\n\nEnter password again." 10 60 2> pass1
-        dialog --no-cancel --passwordbox "Retype password." 10 60 2> pass2
-    done
-    pass1=$(cat pass1)
+    # while [ "$(cat pass1)" != "$(cat pass2)" ]
+    # do
+    #     dialog --no-cancel --passwordbox "Passwords do not match.\n\nEnter password again." 10 60 2> pass1
+    #     dialog --no-cancel --passwordbox "Retype password." 10 60 2> pass2
+    # done
+    # pass1=$(cat pass1)
 
-    rm pass1 pass2
+    # rm pass1 pass2
 
     # Create user if doesn't exist
     if [[ ! "$(id -u "$name" 2> /dev/null)" ]]; then

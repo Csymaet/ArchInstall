@@ -8,33 +8,37 @@ run() {
     url_installer=$(cat /var_url_installer)
     dry_run=$(cat /var_dry_run)
 
-    log INFO "DOWNLOAD APPS CSV" "$output"
-    apps_path="$(download-app-csv "$url_installer")"
-    log INFO "APPS CSV DOWNLOADED AT: $apps_path" "$output"
-    ## 为steam添加multilib仓库
-    add-multilib-repo
-    log INFO "MULTILIB ADDED" "$output"
+    ## 下载apps.csv
+    # log INFO "DOWNLOAD APPS CSV" "$output"
+    # apps_path="$(download-app-csv "$url_installer")"
+    # log INFO "APPS CSV DOWNLOADED AT: $apps_path" "$output"
+
+    # 为steam添加multilib仓库
+    # add-multilib-repo
+    # log INFO "MULTILIB ADDED" "$output"
+    
     ## 显示软件选择界面
-    dialog-welcome
-    dialog-choose-apps ch
-    choices=$(cat ch) && rm ch
-    log INFO "APP CHOOSEN: $choices" "$output"
-    lines="$(extract-choosed-apps "$choices" "$apps_path")"
-    log INFO "GENERATED LINES: $lines" "$output"
-    apps="$(extract-app-names "$lines")"
-    log INFO "APPS: $apps" "$output"
+    # dialog-welcome
+    # dialog-choose-apps ch # 会返回一系列名称，用空格分隔
+    # choices=$(cat ch) && rm ch
+    # log INFO "APP CHOOSEN: $choices" "$output"
+    # lines="$(extract-choosed-apps "$choices" "$apps_path")" # 从apps.csv中提取出软件包的具体名称
+    # log INFO "GENERATED LINES: $lines" "$output"
+    # apps="$(extract-app-names "$lines")" # 提取第二列(软件包名称)
+    # log INFO "APPS: $apps" "$output"
+    
     ## 更新系统
-    update-system
-    log INFO "UPDATED SYSTEM" "$output"
-    ## ???
-    delete-previous-aur-queue
-    log INFO "DELETED PREVIOUS AUR QUEUE" "$output"
-    ## 开始安装
-    dialog-install-apps "$apps" "$dry_run" "$output"
-    log INFO "APPS INSTALLED" "$output"
-    ## ??
-    disable-horrible-beep
-    log INFO "HORRIBLE BEEP DISABLED" "$output"
+    # update-system
+    # log INFO "UPDATED SYSTEM" "$output"
+    ## 清空previous-aur-queue
+    # delete-previous-aur-queue
+    # log INFO "DELETED PREVIOUS AUR QUEUE" "$output"
+    ## 开始安装并设置
+    # dialog-install-apps "$apps" "$dry_run" "$output"
+    # log INFO "APPS INSTALLED" "$output"
+    ## 关闭嘟嘟声
+    # disable-horrible-beep
+    # log INFO "HORRIBLE BEEP DISABLED" "$output"
     ## 设置sudo
     set-user-permissions
     log INFO "USER PERMISSIONS SET" "$output"

@@ -52,7 +52,7 @@ run() {
     config_user
 
     ## 进入下一步，安装应用
-    # continue-install "$url_installer"
+    continue-install "$url_installer"
 }
 
 log() {
@@ -109,13 +109,14 @@ configure-locale() {
 
 config_user() {
     local name=${1:-none}
+    local def_name=eli
 
     pass1=root
     if [ "$name" == none ]; then
         # dialog --no-cancel --inputbox "Please enter your username" 10 60 2> name
         # name=$(cat name) && rm name
-        name=eli
-        pass1=eli
+        name=$def_name
+        pass1=$def_name
     fi
 
     # dialog --no-cancel --passwordbox "Enter your password" 10 60 2> pass1
@@ -133,7 +134,8 @@ config_user() {
     # Create user if doesn't exist
     if [[ ! "$(id -u "$name" 2> /dev/null)" ]]; then
         dialog --infobox "Adding user $name..." 4 50
-        useradd -m -g wheel -s /bin/bash "$name"
+        # useradd -m -g wheel -s /bin/bash "$name"
+        useradd -m -s /bin/bash "$name"
     fi
 
     # Add password to user
@@ -146,9 +148,12 @@ config_user() {
 continue-install() {
     local -r url_installer=${1:?}
 
-    dialog --title "Continue installation" --yesno "Do you want to install all the softwares and the dotfiles?" 10 60 \
-        && curl "$url_installer/install_apps.sh" > /tmp/install_apps.sh \
-        && bash /tmp/install_apps.sh
+    # dialog --title "Continue installation" --yesno "Do you want to install all the softwares and the dotfiles?" 10 60 \
+        # && curl "$url_installer/install_apps.sh" > /tmp/install_apps.sh \
+        # && bash /tmp/install_apps.sh
+        
+    curl "$url_installer/install_apps.sh" > /tmp/install_apps.sh
+    bash /tmp/install_apps.sh
 }
 
 run "$@"

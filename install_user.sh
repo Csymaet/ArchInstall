@@ -4,21 +4,21 @@ run() {
     output="/home/$(whoami)/install_log"
     cd /tmp
 
-    log INFO "FETCH VARS FROM FILES" "$output"
+    # log INFO "FETCH VARS FROM FILES" "$output"
     # dry_run=$(cat /var_dry_run)
 
-    log INFO "CREATE DIRECTORIES" "$output"
     ## 在家目录下创建一些文件夹
+    log INFO "CREATE DIRECTORIES" "$output"
     create-directories
-    log INFO "INSTALL YAY" "$output"
     ## 安装yay
-    install-yay "$output"
-    log INFO "INSTALL AUR APPS" "$output"
+    # log INFO "INSTALL YAY" "$output"
+    # install-yay "$output"
+    # log INFO "INSTALL AUR APPS" "$output"
     ## 安装aur应用
-    install-aur-apps "$output"
-    log INFO "INSTALL DOTFILES" "$output"
+    # install-aur-apps "$output"
+    # log INFO "INSTALL DOTFILES" "$output"
     ## 下载点文件
-    install-dotfiles
+    # install-dotfiles
 }
 
 log() {
@@ -31,13 +31,14 @@ log() {
 }
 
 create-directories() {
-    mkdir -p /home/"$(whoami)"/{Documents,Downloads,Videos,workspace,Music,composer}
+    mkdir -p /home/"$(whoami)"/myfile
+    # mkdir -p /home/"$(whoami)"/{Documents,Downloads,Videos,workspace,Music,composer}
 
-    command -v "go" >/dev/null && mkdir -p "/home/$(whoami)/workspace/go/bin"
-    command -v "go" >/dev/null && mkdir -p "/home/$(whoami)/workspace/go/pkg"
-    command -v "go" >/dev/null &&  mkdir -p "/home/$(whoami)/workspace/go/src"
+    # command -v "go" >/dev/null && mkdir -p "/home/$(whoami)/workspace/go/bin"
+    # command -v "go" >/dev/null && mkdir -p "/home/$(whoami)/workspace/go/pkg"
+    # command -v "go" >/dev/null &&  mkdir -p "/home/$(whoami)/workspace/go/src"
 
-    command -v "nextcloud" >/dev/null && mkdir -p "/home/$(whoami)/Nextcloud"
+    # command -v "nextcloud" >/dev/null && mkdir -p "/home/$(whoami)/Nextcloud"
 }
 
 install-yay() {

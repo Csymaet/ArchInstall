@@ -2,6 +2,7 @@
 
 run() {
     output="/home/$(whoami)/install_log"
+    url_installer=$(cat /var_url_installer)
     cd /tmp
 
     # log INFO "FETCH VARS FROM FILES" "$output"
@@ -10,15 +11,20 @@ run() {
     ## 在家目录下创建一些文件夹
     log INFO "CREATE DIRECTORIES" "$output"
     create-directories
+
     ## 安装yay
     # log INFO "INSTALL YAY" "$output"
     # install-yay "$output"
-    # log INFO "INSTALL AUR APPS" "$output"
     ## 安装aur应用
+    # log INFO "INSTALL AUR APPS" "$output"
     # install-aur-apps "$output"
     # log INFO "INSTALL DOTFILES" "$output"
     ## 下载点文件
     # install-dotfiles
+    #
+    ## 配置应用
+    log INFO "CONFIG APPS" "$output"
+    config-apps "$output"
 }
 
 log() {
@@ -101,6 +107,23 @@ install-dotfiles() {
     source "/home/$(whoami)/.dotfiles/zsh/zshenv"
     cd "$DOTFILES"
     command -v "zsh" >/dev/null && zsh ./install.sh -y
+}
+
+config-apps() {
+    ## i3
+    mkdir -p ~/.config/i3
+    curl "$url_installer/files/i3/config" > ~/.config/i3/config
+
+    # 下面两步可能会因网络原因执行失败(那就手动执行吧~)
+
+    ## zsh
+    sh /usr/share/oh-my-zsh/tools/install.sh
+    # exit
+    
+    ## spacevim
+    curl -sLf https://spacevim.org/cn/install.sh | bash
+    mkdir -p ~/.SpaceVim.d
+    curl "$url_installer/files/spacevim/init.toml" > ~/.SpaceVim.d/init.toml
 }
 
 run "$@"

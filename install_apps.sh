@@ -17,6 +17,26 @@ run() {
     # add-multilib-repo
     # log INFO "MULTILIB ADDED" "$output"
     
+    # 添加cn仓库
+    add-cn-repo
+    log INFO "cn ADDED" "$output"
+
+    # 安装yay
+    log INFO "INSTALL YAY" "$output"
+    install-yay "$output"
+
+    ## 安装aur应用
+    log INFO "INSTALL AUR APPS" "$output"
+    install-aur-apps "$output"
+
+    ## 启动服务
+    log INFO "ENABLE SERVICE" "$output"
+    enable-service "$output"
+    
+    ## 配置应用
+    log INFO "CONFIG APPS" "$output"
+    config-apps "$output"
+
     ## 显示软件选择界面
     # dialog-welcome
     # dialog-choose-apps ch # 会返回一系列名称，用空格分隔
@@ -39,6 +59,7 @@ run() {
     ## 关闭嘟嘟声
     # disable-horrible-beep
     # log INFO "HORRIBLE BEEP DISABLED" "$output"
+    
     ## 设置sudo
     set-user-permissions
     log INFO "USER PERMISSIONS SET" "$output"
@@ -68,6 +89,48 @@ download-app-csv() {
 # Add multilib repo for steam
 add-multilib-repo() {
     echo "[multilib]" >> /etc/pacman.conf && echo "Include = /etc/pacman.d/mirrorlist" >> /etc/pacman.conf
+}
+
+add-cn-repo() {
+    echo "[archlinuxcn]" >> /etc/pacman.conf && echo "Server = https://mirrors.cloud.tencent.com/archlinuxcn/\$arch" >> /etc/pacman.conf
+    pacman -Sy && pacman --noconfirm --needed -S archlinuxcn-keyring
+}
+
+install-yay() {
+    pacman --noconfirm --needed -S yay
+}
+
+install-aur-apps() {
+    yay --noconfirm -S v2ray v2raya zsh zsh-completions oh-my-zsh-git clitrans-git termscp sddm sddm-sugar-dark
+}
+
+enable-service() {
+    systemctl enable docker.service
+    systemctl enable dhcpcd.service
+    systemctl enable sshd.service
+    systemctl enable bluetooth.service
+    systemctl enable v2ray.service
+    systemctl enable v2raya.service
+    systemctl enable sddm.service
+}
+
+config-apps() {
+    # profile
+    echo -e "\n# 进入我的目录\nif [ -d ~/myfile ]; then\n  cd ~/myfile\nfi" >> /etc/profile
+    # sddm
+    mkdir -p /etc/sddm.conf.d
+    curl "$url_installer/files/sddm.conf" > /etc/sddm.conf.d/sddm.conf
+    # docker
+    gpasswd -a eli docker     #将登陆用户加入到docker用户组中
+    # newgrp docker     #更新用户组
+    # v2raya
+    mkdir -p /etc/v2raya
+    curl "$url_installer/files/v2raya/bolt.db" > /etc/v2raya/bolt.db
+    curl "$url_installer/files/v2raya/boltv4.db" > /etc/v2raya/boltv4.db
+    curl "$url_installer/files/v2raya/config.json" > /etc/v2raya/config.json
+
+    # zsh
+    chsh -s /bin/zsh eli
 }
 
 dialog-welcome() {
@@ -227,7 +290,7 @@ continue-install() {
 
 set-user-permissions() {
     dialog --infobox "Copy user permissions configuration (sudoers)..." 4 40
-    curl "$url_installer/sudoers" > /etc/sudoers
+    curl "$url_installer/files/sudoers" > /etc/sudoers
 }
 
 disable-horrible-beep() {

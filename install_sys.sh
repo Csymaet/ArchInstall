@@ -279,7 +279,19 @@ select-mirror-source() {
 
 
 install-arch-linux() {
-    pacstrap /mnt linux base base-devel linux-firmware grub efibootmgr iwd dhcpcd man-db git neovim openssh
+    pacstrap /mnt base linux base-devel linux-firmware man-db \
+        grub efibootmgr \
+        iwd dhcpcd openssh \
+        git neovim \
+        pulseaudio pulseaudio-bluetooth \
+        bluez-utils bluez \
+        wqy-zenhei fcitx5-im fcitx5-chinese-addons \
+        i3 dmenu xorg-server tmux \
+        konsole yakuake \
+        firefox \
+        tree ranger imlib2 \
+        flameshot termdown docker ntfs-3g
+
     genfstab -U /mnt >> /mnt/etc/fstab
 }
 

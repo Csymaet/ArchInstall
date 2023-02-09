@@ -8,7 +8,6 @@ set -euo pipefail
 # YOU NEED TO MODIFY YOUR INSTALL URL
 url-installer() {
     # echo "https://raw.githubusercontent.com/Csymaet/ArchInstall/master"
-    # echo "file:///root" # 如果脚本已下载到本地，则使用这个路径
     echo "192.168.1.145:8081"
 }
 

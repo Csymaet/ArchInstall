@@ -127,6 +127,7 @@ config_user() {
 
   # Save name for later
   echo "$name" >/var_user_name
+  echo "CONFIG_USER: wrote /var_user_name = $name"
 }
 
 continue-install() {

@@ -41,6 +41,7 @@ run() {
 
     # 进入下一步
     curl -Lf "$url_installer/install_4_user.sh" > /tmp/install_4_user.sh
+    chown "$name" "$output"
     if [ "$dry_run" = false ]; then
         sudo -u "$name" bash /tmp/install_4_user.sh
     fi

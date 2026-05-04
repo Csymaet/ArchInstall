@@ -96,6 +96,22 @@ run() {
   log INFO "HOSTNAME: $hostname" "$output"
 
   # ==========================================================================
+  # ⑤.1 设置 root 密码
+  # ==========================================================================
+  local root_pass
+  dialog-input-password rp "Set password for root user"
+  root_pass=$(cat rp) && rm rp
+  log INFO "ROOT PASSWORD SET" "$output"
+
+  # ==========================================================================
+  # ⑤.2 设置用户密码
+  # ==========================================================================
+  local user_pass
+  dialog-input-password up "Set password for user $hostname"
+  user_pass=$(cat up) && rm up
+  log INFO "USER PASSWORD SET" "$output"
+
+  # ==========================================================================
   # ⑥ 选择目标磁盘
   # ==========================================================================
   # 用 dialog --radiolist 列出所有可用磁盘，用户用空格选择、回车确认
@@ -191,6 +207,8 @@ run() {
   #   var_dry_run       — 干跑模式开关
   #   var_url_installer — 远程脚本仓库地址
   #   var_swap_size     — Swap 文件大小（GB）
+  #   var_root_pass     — root 用户密码
+  #   var_user_pass     — 普通用户密码
   log INFO "CREATE VAR FILES" "$output"
   echo "$(is-uefi)" >/mnt/var_uefi
   echo "$disk" >/mnt/var_disk
@@ -199,6 +217,8 @@ run() {
   echo "$dry_run" >/mnt/var_dry_run
   url-installer >/mnt/var_url_installer
   echo "$swap_size" >/mnt/var_swap_size
+  echo "$root_pass" >/mnt/var_root_pass
+  echo "$user_pass" >/mnt/var_user_pass
 
   # ==========================================================================
   # ⑭ 使用 pacstrap 安装基础系统
@@ -320,6 +340,31 @@ dialog-are-you-sure() {
 dialog-name-of-computer() {
   local file=${1:?}
   dialog --no-cancel --inputbox "Enter a name for your computer." 10 60 2>"$file"
+}
+
+# ----------------------------------------------------------------------------
+# dialog-input-password — 密码输入对话框（带二次确认）
+# ----------------------------------------------------------------------------
+# 两次输入不一致则循环，直到一致为止
+# --passwordbox 隐藏输入（显示为星号）
+dialog-input-password() {
+  local file=${1:?}
+  local prompt=${2:?}
+  local pass1=""
+  local pass2=""
+
+  while true; do
+    dialog --no-cancel --passwordbox "$prompt" 10 60 2>/tmp/.pass1
+    dialog --no-cancel --passwordbox "Confirm: retype the password" 10 60 2>/tmp/.pass2
+    pass1=$(cat /tmp/.pass1)
+    pass2=$(cat /tmp/.pass2)
+    rm /tmp/.pass1 /tmp/.pass2
+
+    [[ "$pass1" == "$pass2" ]] && break
+    dialog --msgbox "Passwords do not match. Please try again." 10 40
+  done
+
+  echo "$pass1" >"$file"
 }
 
 # ----------------------------------------------------------------------------
@@ -612,6 +657,8 @@ clean() {
   rm /mnt/var_output
   rm /mnt/var_dry_run
   rm /mnt/var_swap_size
+  rm /mnt/var_root_pass
+  rm /mnt/var_user_pass
 }
 
 # ----------------------------------------------------------------------------

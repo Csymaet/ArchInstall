@@ -2,8 +2,8 @@ tree,目录树显示,默认
 ranger,终端文件管理器,默认
 imlib2,ranger 图片预览依赖,默认
 flameshot,截图工具,默认
-termdown,终端倒计时,可选
-ntfs-3g,NTFS 文件系统支持,默认
-termscp,文件传输工具,可选
-clitrans-git,命令行翻译 (AUR),可选
+termdown,终端倒计时,默认
+ntfs-3g,NTFS 文件系统支持,可选
+termscp,文件传输工具,默认
+clitrans-git,命令行翻译 (AUR),默认
 firefox,Firefox 浏览器,默认

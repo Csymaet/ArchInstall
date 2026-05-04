@@ -138,7 +138,7 @@ run() {
   # ==========================================================================
   # 使用 wipefs 擦除磁盘上所有分区的文件系统签名
   # 比 dd/shred 快得多（只擦签名，不覆写数据），效果等同"清除分区表"
-  # 内部会倒序擦除（sda3→sda2→sda1），避免分区表变化导致设备节点消失
+  # 内部会倒序擦除（sda2→sda1），避免分区表变化导致设备节点消失
   [[ "$dry_run" = false ]] &&
     log INFO "WIPE FILESYSTEM SIGNATURES" "$output" &&
     wipe-fs "$disk"
@@ -146,7 +146,7 @@ run() {
   # ==========================================================================
   # ⑪ 创建 GPT 分区表和分区
   # ==========================================================================
-  # 分区方案（共 3 个分区，无 Swap）：
+  # 分区方案（共 2 个分区，无 Swap）：
   #   分区1：512M — Boot 分区（EFI System Partition 或 BIOS Boot Partition）
   #   分区2：剩余  — Root 根分区
   #
@@ -165,7 +165,7 @@ run() {
   # ==========================================================================
   # ⑫ 格式化分区并挂载
   # ==========================================================================
-  # 根分区和 Home 分区：格式化为 ext4
+  # Root 分区：格式化为 ext4
   # Boot 分区：
   #   UEFI 模式 → 格式化为 FAT32（EFI 标准要求），挂载到 /mnt/boot/efi
   #   BIOS 模式 → 不需要单独格式化（由 GRUB 直接处理）
@@ -190,6 +190,7 @@ run() {
   #   var_output        — 日志输出目标
   #   var_dry_run       — 干跑模式开关
   #   var_url_installer — 远程脚本仓库地址
+  #   var_swap_size     — Swap 文件大小（GB）
   log INFO "CREATE VAR FILES" "$output"
   echo "$(is-uefi)" >/mnt/var_uefi
   echo "$disk" >/mnt/var_disk
@@ -311,7 +312,7 @@ dialog-are-you-sure() {
 }
 
 # ----------------------------------------------------------------------------
-# dialog-name-of-computer — 输入主机名的对话框（当前未使用）
+# dialog-name-of-computer — 输入主机名的对话框
 # ----------------------------------------------------------------------------
 # --no-cancel 不显示取消按钮
 # --inputbox  文本输入框
@@ -371,7 +372,7 @@ dialog-what-disk-to-use() {
 }
 
 # ----------------------------------------------------------------------------
-# dialog-what-swap-size — 输入 Swap 分区大小的对话框（当前未使用）
+# dialog-what-swap-size — 输入 Swap 文件大小的对话框
 # ----------------------------------------------------------------------------
 # 默认 8G，如果用户输入的不是纯数字则使用默认值
 # 正则 ^[0-9]+$ 匹配一个或多个数字
@@ -476,10 +477,9 @@ boot-partition() {
 # 流程（通过 heredoc <<EOF 传入 fdisk 的交互式命令序列）：
 #
 #   g              创建新的空 GPT 分区表（⚠️ 会清除原有分区表）
-#   n ↵ ↵ +2G     新建分区1（默认起始扇区，大小 2G）— Boot 分区
+#   n ↵ ↵ +512M   新建分区1（默认起始扇区，大小 512M）— Boot 分区
 #   t <type_id>    设置分区1的类型（UEFI=1, BIOS=4）
-#   n ↵ ↵ +100G   新建分区2（默认起始扇区，大小 100G）— Root 分区
-#   n ↵ ↵ ↵       新建分区3（默认起始扇区，占满剩余空间）— Home 分区
+#   n ↵ ↵ ↵       新建分区2（默认起始扇区，占满剩余空间）— Root 分区
 #   w              写入分区表到磁盘并退出
 #
 # 空行 = 按回车（接受默认值，即使用第一个可用的扇区）
@@ -567,19 +567,11 @@ select-mirror-source() {
 # pacstrap: Arch 专用的系统安装工具，在指定目录下安装完整的根文件系统
 # 参数 /mnt 表示安装到 /mnt 目录（即我们之前挂载的 Root 分区）
 #
-# 安装的软件包分组：
-#   🏗️ 基础：base linux base-devel linux-firmware man-db
-#   🔧 引导：grub efibootmgr
-#   🌐 网络：iwd（WiFi）dhcpcd（有线DHCP）openssh（SSH服务端）
-#   💻 开发：git neovim
-#   🔊 音频：pulseaudio pulseaudio-bluetooth
-#   📶 蓝牙：bluez-utils bluez
-#   🇨🇳 中文：wqy-zenhei（文泉驿字体）fcitx5-im fcitx5-chinese-addons（输入法框架）
-#   🖥️ 桌面：i3（窗口管理器）dmenu（应用启动器）xorg-server（显示服务器）tmux
-#   📟 终端：konsole（KDE终端）yakuake（下拉式终端）
-#   🌍 浏览器：firefox
-#   📂 工具：tree ranger imlib2
-#   🛠️ 其他：flameshot（截图）termdown（倒计时）docker ntfs-3g（NTFS支持）
+# 安装最小基础系统（其余软件由 install_3_apps.sh 通过 CSV 文件安装）：
+#   🏗️ 基础：base linux linux-firmware
+#   🔧 引导：grub base-devel efibootmgr
+#   🌐 网络：iwd（WiFi）dhcpcd（有线）
+#   💻 开发：git（版本控制）
 #
 # genfstab -U /mnt >>/mnt/etc/fstab
 #   自动生成文件系统挂载表（fstab），新系统启动时根据此文件自动挂载分区
@@ -619,6 +611,7 @@ clean() {
   rm /mnt/var_hostname
   rm /mnt/var_output
   rm /mnt/var_dry_run
+  rm /mnt/var_swap_size
 }
 
 # ----------------------------------------------------------------------------

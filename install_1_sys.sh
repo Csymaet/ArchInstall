@@ -87,11 +87,11 @@ run() {
   # ==========================================================================
   # Linux 内核 TTY 不支持中文（512 字形硬限制）
   # 通过 kmscon（用户空间终端）绕过，支持完整 UTF-8 / CJK
-  # 首次运行时弹窗告知用户，安装后自动重新运行脚本
+  # 首次运行：安装 → 配置 → 自动 re-exec 进入 kmscon
   if [[ ! -f /tmp/.kmscon_done ]]; then
-    dialog --msgbox "Chinese terminal will be installed.\n\nAfter installation, please run:\n    kmscon\nThen re-run this script." 12 50
+    dialog --msgbox "Chinese terminal will be installed.\n\nAfter installation, the script will restart automatically." 10 50
     setup-chinese-terminal
-    exit 0
+    exec kmscon --login -- /bin/bash "$0"
   fi
 
   # ==========================================================================
@@ -333,7 +333,7 @@ log() {
 }
 
 # ----------------------------------------------------------------------------
-# setup-chinese-terminal — 安装 kmscon + 中文字体，在 kmscon 内重新运行脚本
+# setup-chinese-terminal — 安装 kmscon + 中文字体，自动 re-exec 进入 kmscon
 # ----------------------------------------------------------------------------
 # Linux 内核 TTY 最多 512 字形，无法显示中文
 # kmscon 是用户空间终端，通过 Pango 渲染完整 UTF-8 / CJK

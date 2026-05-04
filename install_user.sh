@@ -120,10 +120,6 @@ config-apps() {
     sh /usr/share/oh-my-zsh/tools/install.sh
     # exit
     
-    ## spacevim
-    curl -sLf https://spacevim.org/cn/install.sh | bash
-    mkdir -p ~/.SpaceVim.d
-    curl "$url_installer/files/spacevim/init.toml" > ~/.SpaceVim.d/init.toml
 }
 
 run "$@"

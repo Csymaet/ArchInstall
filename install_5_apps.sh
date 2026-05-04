@@ -2,9 +2,14 @@
 set -euo pipefail
 
 # 进入系统后手动执行：装软件 + 启用服务 + 配置应用
-# 用法：bash install_5_apps.sh <远程仓库地址>
+# 用法：bash install_5_apps.sh [远程仓库地址]
+#       不传参时自动读取 ~/install_url
 
-url_installer=${1:?用法: bash install_5_apps.sh <url_installer>}
+url_installer=${1:-$(cat ~/install_url 2>/dev/null)}
+if [[ -z "$url_installer" ]]; then
+    echo "用法: bash install_5_apps.sh <url_installer>"
+    exit 1
+fi
 name=$(whoami)
 output="/tmp/install_5.log"
 
@@ -34,8 +39,8 @@ log() {
 
 install-selected-apps() {
     local apps=""
-    if [[ -f ~/selected_apps.txt ]]; then
-        apps=$(cat ~/selected_apps.txt)
+    if [[ -f ~/install_selected_apps ]]; then
+        apps=$(cat ~/install_selected_apps)
     fi
     if [[ -n "$apps" ]]; then
         yay --noconfirm --needed -S $apps

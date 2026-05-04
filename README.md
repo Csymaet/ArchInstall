@@ -47,7 +47,7 @@
 2. 启用系统服务（`scripts/enable-services.sh`）
 3. 应用配置（`scripts/config-apps.sh`）
 
-用法：`bash install_5_apps.sh <远程仓库地址>`
+用法：`bash install_5_apps.sh`（自动读取安装时保存的配置，无需传参）
 
 ## 📂 目录结构
 

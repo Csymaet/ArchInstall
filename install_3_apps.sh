@@ -35,11 +35,12 @@ run() {
     log INFO "SET USER PERMISSIONS" "$output"
     curl -Lf "$url_installer/files/sudoers" > /etc/sudoers
 
-    # 保存用户选择的软件列表（供 install_5 使用）
+    # 保存配置供 install_5 使用（URL + 软件列表）
     local selected_apps
     selected_apps=$(cat /var_selected_apps)
-    echo "$selected_apps" > "/home/$name/selected_apps.txt"
-    chown "$name" "/home/$name/selected_apps.txt"
+    echo "$selected_apps" > "/home/$name/install_selected_apps"
+    echo "$url_installer" > "/home/$name/install_url"
+    chown "$name" "/home/$name/install_selected_apps" "/home/$name/install_url"
 
     # 进入下一步
     curl -Lf "$url_installer/install_4_user.sh" > /tmp/install_4_user.sh

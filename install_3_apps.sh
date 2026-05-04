@@ -57,10 +57,13 @@ install-yay() {
 }
 
 # yay 同时支持 pacman 仓库和 AUR，无需区分
+# AUR 包禁止 root 构建，需临时给用户免密 sudo 后以普通用户运行 yay
 install-apps() {
     local -r apps=${1:?}
     if [[ -n "$apps" ]]; then
-        yay --noconfirm --needed -S $apps
+        echo "$name ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/tmp-install
+        sudo -u "$name" yay --noconfirm --needed -S $apps
+        rm /etc/sudoers.d/tmp-install
     fi
 }
 

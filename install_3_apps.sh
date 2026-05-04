@@ -27,7 +27,7 @@ run() {
 
     # 配置应用
     log INFO "CONFIG APPS" "$output"
-    run-remote-script "config-apps.sh"
+    run-remote-script "config-apps-system.sh"
 
     # 设置 sudo 权限
     set-user-permissions

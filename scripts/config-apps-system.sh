@@ -1,4 +1,5 @@
 #!/bin/bash
+# 🔒 以 root 身份运行（由 install_3_apps.sh 调用）
 # 应用配置
 # 按需增删配置块即可
 # 可用变量：$name（用户名）、$url_installer（远程仓库地址）

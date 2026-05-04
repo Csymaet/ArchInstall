@@ -8,11 +8,11 @@ run() {
 
   ## 在家目录下创建一些文件夹
   log INFO "CREATE DIRECTORIES" "$output"
-  create-directories
+  run-remote-script "create-directories.sh"
 
   ## 配置应用
   log INFO "CONFIG APPS" "$output"
-  config-apps
+  run-remote-script "config-apps-user.sh"
 }
 
 log() {
@@ -24,19 +24,12 @@ log() {
   echo -e "${timestamp} [${level}] ${message}" >>"$output"
 }
 
-create-directories() {
-  mkdir -p /home/"$(whoami)"/myfile
-}
-
-config-apps() {
-  ## i3
-  mkdir -p ~/.config/i3
-  curl "$url_installer/files/i3/config" >~/.config/i3/config
-
-  # 下面的步骤可能会因网络原因执行失败(那就手动执行吧)
-
-  ## oh-my-zsh
-  command -v zsh &>/dev/null && sh /usr/share/oh-my-zsh/tools/install.sh
+run-remote-script() {
+  local -r script_name=${1:?}
+  local -r tmp="/tmp/$script_name"
+  curl "$url_installer/scripts/$script_name" >"$tmp"
+  bash "$tmp"
+  rm "$tmp"
 }
 
 run "$@"

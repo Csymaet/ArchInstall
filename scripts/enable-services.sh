@@ -1,4 +1,5 @@
 #!/bin/bash
+# 🔒 以 root 身份运行（由 install_3_apps.sh 调用）
 # 启用系统服务
 # 按需增删 systemctl enable 行即可
 # 仅在对应软件已安装时启用

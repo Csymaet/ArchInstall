@@ -35,8 +35,8 @@ run() {
   hwclock --systohc
 
   ## 写入主机名
-  log INFO "WRITE HOSTNAME: $hostname" "$output" \
-    write-hostname "$hostname"
+  log INFO "WRITE HOSTNAME: $hostname" "$output"
+  write-hostname "$hostname"
 
   ## 配置locale
   log INFO "CONFIGURE LOCALE" "$output"
@@ -126,7 +126,7 @@ config_user() {
   echo "$name:$pass" | chpasswd
 
   # Save name for later
-  echo "$name" >/tmp/var_user_name
+  echo "$name" >/var_user_name
 }
 
 continue-install() {

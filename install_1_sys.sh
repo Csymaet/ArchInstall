@@ -438,7 +438,7 @@ dialog-choose-apps() {
     done <"$csv_file"
   done
 
-  dialog --checklist "选择要安装的软件（空格选择，回车确认）" 0 0 0 "${checklist[@]}" 2>"$file"
+  dialog --separate-output --checklist "选择要安装的软件（空格选择，回车确认）" 0 0 0 "${checklist[@]}" 2>"$file"
 }
 
 # ----------------------------------------------------------------------------
@@ -651,8 +651,8 @@ format-partitions() {
   local hd=${1:?}
   local -r uefi=${2:?}
 
-  # NVMe 磁盘分区名带 'p'（nvme0n1p1 vs sda1）
-  echo "$hd" | grep -E 'nvme' &>/dev/null && hd="${hd}p"
+  # NVMe / eMMC 磁盘分区名带 'p'（nvme0n1p1 / mmcblk0p1 vs sda1）
+  echo "$hd" | grep -E 'nvme|mmcblk' &>/dev/null && hd="${hd}p"
 
   # 格式化并挂载 Root 分区
   mkfs.ext4 "${hd}2"
@@ -734,6 +734,8 @@ clean() {
   rm /mnt/var_root_pass
   rm /mnt/var_user_pass
   rm /mnt/var_selected_apps
+  rm /mnt/var_url_installer
+  rm /mnt/var_user_name
 }
 
 # ----------------------------------------------------------------------------

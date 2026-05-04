@@ -4,7 +4,7 @@ run() {
     output=$(cat /var_output)
 
     log INFO "FETCH VARS FROM FILES" "$output"
-    name=$(cat /tmp/var_user_name)
+    name=$(cat /var_user_name)
     url_installer=$(cat /var_url_installer)
     dry_run=$(cat /var_dry_run)
     selected_apps=$(cat /var_selected_apps)
@@ -66,7 +66,7 @@ run-remote-script() {
     local -r script_name=${1:?}
     local -r tmp="/tmp/$script_name"
     curl "$url_installer/scripts/$script_name" >"$tmp"
-    bash "$tmp"
+    bash "$tmp" "$url_installer" "$name"
     rm "$tmp"
 }
 

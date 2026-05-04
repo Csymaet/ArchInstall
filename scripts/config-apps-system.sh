@@ -2,7 +2,10 @@
 # 🔒 以 root 身份运行（由 install_3_apps.sh 调用）
 # 应用配置
 # 按需增删配置块即可
-# 可用变量：$name（用户名）、$url_installer（远程仓库地址）
+# 参数：$1=远程仓库地址  $2=用户名
+
+url_installer=${1:?}
+name=${2:?}
 
 # sddm 登录管理器配置
 command -v sddm &>/dev/null && {

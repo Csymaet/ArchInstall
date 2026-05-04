@@ -23,9 +23,10 @@ set -euo pipefail
 
 _normal_exit=0
 trap '
+_ec=$?
 if [[ $_normal_exit != 1 ]]; then
   echo ""
-  echo "❌ 脚本异常退出，退出码: $?"
+  echo "❌ 脚本异常退出，退出码: $_ec"
   echo "30 秒后自动退出..."
   sleep 30
 fi
@@ -289,9 +290,10 @@ run() {
   # 使用 -U 选项以 UUID 标识分区（比设备名更稳定，不会因插拔顺序变化）
   #
   # 🔒 dry_run 模式下跳过此步骤
-  [[ "$dry_run" = false ]] &&
-    log INFO "BEGIN INSTALL ARCH LINUX" "$output" &&
+  if [[ "$dry_run" = false ]]; then
+    log INFO "BEGIN INSTALL ARCH LINUX" "$output"
     install-arch-linux
+  fi
 
   # ==========================================================================
   # ㉑ 执行第二阶段脚本（chroot 进入新系统）
@@ -312,9 +314,10 @@ run() {
   # 💡 远程下载 = 脚本热更新，修改仓库后无需重新制作 ISO
   #
   # 🔒 dry_run 模式下跳过此步骤
-  [[ "$dry_run" = false ]] &&
-    log INFO "BEGIN CHROOT SCRIPT" "$output" &&
+  if [[ "$dry_run" = false ]]; then
+    log INFO "BEGIN CHROOT SCRIPT" "$output"
     install-chroot "$(url-installer)"
+  fi
 
   # ==========================================================================
   # ㉒ 清理与完成
@@ -685,10 +688,11 @@ format-partitions() {
   mount "${hd}2" /mnt
 
   # UEFI 模式：格式化 Boot 分区为 FAT32 并挂载
-  [[ "$uefi" == 1 ]] &&
-    mkfs.fat -F32 "${hd}1" &&
-    mkdir -p /mnt/boot/efi &&
+  if [[ "$uefi" == 1 ]]; then
+    mkfs.fat -F32 "${hd}1"
+    mkdir -p /mnt/boot/efi
     mount "${hd}1" /mnt/boot/efi
+  fi
 }
 
 # ----------------------------------------------------------------------------

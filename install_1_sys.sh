@@ -195,6 +195,9 @@ run() {
     wipe-fs "$disk" || { log ERROR "wipe-fs failed for $disk" "$output"; exit 1; }
   fi
 
+  local uefi_val boot_type
+  uefi_val=$(is-uefi)
+
   # ==========================================================================
   # ⑮ 创建 GPT 分区表和分区
   # ==========================================================================
@@ -211,8 +214,6 @@ run() {
   #
   # 🔒 dry_run 模式下跳过此步骤
   if [[ "$dry_run" = false ]]; then
-    local uefi_val boot_type
-    uefi_val=$(is-uefi)
     boot_type=$(boot-partition "$uefi_val")
     log INFO "CREATE PARTITIONS: disk=$disk uefi=$uefi_val boot_type=$boot_type" "$output"
     fdisk-partition "$disk" "$boot_type" || { log ERROR "fdisk-partition failed for $disk" "$output"; exit 1; }
@@ -231,7 +232,7 @@ run() {
   # 🔒 dry_run 模式下跳过此步骤
   if [[ "$dry_run" = false ]]; then
     log INFO "FORMAT PARTITIONS" "$output"
-    format-partitions "$disk" "$(is-uefi)" || { log ERROR "format-partitions failed for $disk" "$output"; exit 1; }
+    format-partitions "$disk" "$uefi_val" || { log ERROR "format-partitions failed for $disk" "$output"; exit 1; }
   fi
 
   # ==========================================================================
@@ -655,19 +656,9 @@ fdisk-partition() {
   local -r boot_partition_type=${2:?}
   # local -r swap_size=${3:?}
 
-  partprobe "$hd"
-
-  #g - create non empty GPT partition table
-  #n - create new partition
-  #p - primary partition
-  #e - extended partition
-  #w - write the table to disk and exit
-  #空行表示回车
-  #使用fdisk分区
   fdisk "$hd" <<EOF
 g
 n
-
 
 +512M
 t
@@ -678,6 +669,9 @@ n
 
 w
 EOF
+
+  partprobe "$hd"
+  udevadm settle
 }
 
 # ----------------------------------------------------------------------------
@@ -705,11 +699,10 @@ format-partitions() {
   mount "${hd}2" /mnt
 
   # UEFI 模式：格式化 Boot 分区为 FAT32 并挂载
-  log INFO "$uefi" "$output"
   [[ "$uefi" == 1 ]] &&
     mkfs.fat -F32 "${hd}1" &&
     mkdir -p /mnt/boot/efi &&
-    mount "${hd}"1 /mnt/boot/efi
+    mount "${hd}1" /mnt/boot/efi
 }
 
 # ----------------------------------------------------------------------------

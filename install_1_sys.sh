@@ -25,9 +25,14 @@ set -euo pipefail
 # 📡 安装脚本的远程仓库地址
 # ----------------------------------------------------------------------------
 # ⚠️ 如果你是 Fork 的仓库，必须修改这里的 URL 为你自己的地址
-# 第二阶段脚本（install_2_chroot.sh）会从这个地址下载
+# url-installer: 用于下载单个脚本文件（raw 文件地址）
+# repo-installer: 用于 git clone 整个仓库
 url-installer() {
   echo "https://gitee.com/unityw/ArchInstall/raw/master"
+}
+
+repo-installer() {
+  echo "https://gitee.com/unityw/ArchInstall.git"
 }
 
 # ============================================================================
@@ -131,6 +136,20 @@ run() {
   log INFO "SWAP SIZE: ${swap_size}G" "$output"
 
   # ==========================================================================
+  # ⑦.1 选择要安装的软件
+  # ==========================================================================
+  # 从远程仓库下载 CSV 文件，弹出 checklist 让用户选择
+  # 必装的不会显示（第一阶段已装），默认的预选中，可选的手动勾选
+  local apps_dir="/tmp/apps"
+  log INFO "DOWNLOAD APPS CSV" "$output"
+  download-apps-csv "$(repo-installer)" "$apps_dir"
+
+  local selected_apps
+  dialog-choose-apps selapps "$apps_dir"
+  selected_apps=$(cat selapps | tr '\n' ' ') && rm selapps
+  log INFO "SELECTED APPS: $selected_apps" "$output"
+
+  # ==========================================================================
   # ⑧ 选择格盘方式（已禁用，当前使用更快的 wipefs 替代）
   # ==========================================================================
   # 原始设计提供三种选择：
@@ -209,6 +228,7 @@ run() {
   #   var_swap_size     — Swap 文件大小（GB）
   #   var_root_pass     — root 用户密码
   #   var_user_pass     — 普通用户密码
+  #   var_selected_apps — 用户选择安装的软件列表（空格分隔）
   log INFO "CREATE VAR FILES" "$output"
   echo "$(is-uefi)" >/mnt/var_uefi
   echo "$disk" >/mnt/var_disk
@@ -219,6 +239,7 @@ run() {
   echo "$swap_size" >/mnt/var_swap_size
   echo "$root_pass" >/mnt/var_root_pass
   echo "$user_pass" >/mnt/var_user_pass
+  echo "$selected_apps" >/mnt/var_selected_apps
 
   # ==========================================================================
   # ⑭ 使用 pacstrap 安装基础系统
@@ -365,6 +386,47 @@ dialog-input-password() {
   done
 
   echo "$pass1" >"$file"
+}
+
+# ----------------------------------------------------------------------------
+# download-apps-csv — 从远程仓库克隆 apps 目录
+# ----------------------------------------------------------------------------
+# git clone --depth 1 浅克隆整个仓库，然后只取 apps/ 目录
+# 不硬编码 CSV 文件名，新增/删除 CSV 时自动适配
+download-apps-csv() {
+  local -r repo_url=${1:?}
+  local -r dest=${2:?}
+
+  pacman --noconfirm --needed -S git
+  git clone --depth 1 "$repo_url" /tmp/archinstall-repo
+  cp -r /tmp/archinstall-repo/apps "$dest"
+  rm -rf /tmp/archinstall-repo
+}
+
+# ----------------------------------------------------------------------------
+# dialog-choose-apps — 软件选择对话框
+# ----------------------------------------------------------------------------
+# 从 CSV 文件中读取软件列表，生成 --checklist：
+#   必装 → 不显示（第一阶段 pacstrap 已安装）
+#   默认 → 预选中（on）
+#   可选 → 未选中（off）
+# 用户用空格勾选/取消，回车确认
+# 结果（逗号分隔的包名列表）写入 $file
+dialog-choose-apps() {
+  local file=${1:?}
+  local -r apps_dir=${2:?}
+
+  local checklist=()
+  for csv_file in "$apps_dir"/*.csv; do
+    while IFS=, read -r pkg desc priority; do
+      [[ "$priority" == "必装" ]] && continue
+      local status="off"
+      [[ "$priority" == "默认" ]] && status="on"
+      checklist+=("$pkg" "$desc" "$status")
+    done <"$csv_file"
+  done
+
+  dialog --checklist "选择要安装的软件（空格选择，回车确认）" 0 0 0 "${checklist[@]}" 2>"$file"
 }
 
 # ----------------------------------------------------------------------------
@@ -659,6 +721,7 @@ clean() {
   rm /mnt/var_swap_size
   rm /mnt/var_root_pass
   rm /mnt/var_user_pass
+  rm /mnt/var_selected_apps
 }
 
 # ----------------------------------------------------------------------------

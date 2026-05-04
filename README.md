@@ -4,36 +4,77 @@
 
 **⚠️ 警告**：本脚本仅供参考，请勿直接在你的系统上运行。如果你想试用（建议使用虚拟机），需要：
 
-1. `curl` 下载第一个脚本 `install_1_sys.sh`（`curl -LO https://raw.githubusercontent.com/Csymaet/ArchInstall/master/install_1_sys.sh && sh install_1_sys.sh`）
-2. 根据需要修改文件中的 `url_installer` 函数。
-3. 运行。
+1. `curl` 下载第一个脚本 `install_1_sys.sh`（`curl -LO https://gitee.com/unityw/ArchInstall/raw/master/install_1_sys.sh && sh install_1_sys.sh`）
+2. 根据需要修改文件中的 `url-installer` 和 `repo-installer` 函数
+3. 运行
 
 然后按照提示操作即可。
 
 ## 📦 脚本说明
 
-所有脚本都从 `install_1_sys.sh` 调用。
+所有脚本从 `install_1_sys.sh` 开始，自动链式调用。
 
-**第一个脚本 `install_1_sys.sh`**：
-1. 清空所选磁盘上的所有数据
-2. 创建分区
-    * Boot 分区 200M
-    * Swap 分区
-    * Root 分区
+**`install_1_sys.sh`**（Live USB 环境）：
+1. 配置国内镜像源、同步时钟
+2. 交互式输入：主机名、root 密码、用户密码、Swap 大小
+3. 选择目标磁盘
+4. 从远程仓库下载 CSV，选择要安装的软件（dialog checklist）
+5. 擦除磁盘、创建分区（Boot 512M + Root 占满）
+6. pacstrap 安装最小基础系统
+7. arch-chroot 进入新系统执行第二阶段
 
-**第二个脚本 `install_2_chroot.sh`**：
-1. 设置 locale / 时区
-2. 配置 Grub 引导
+**`install_2_chroot.sh`**（chroot 环境，root 身份）：
+1. 创建 Swap 文件
+2. 安装 GRUB 引导
+3. 设置硬件时钟、时区、locale
+4. 设置 root 密码
+5. 创建普通用户（用户名 = 主机名）
+6. 设置主机名
 
-**第三个脚本 `install_3_apps.sh`**：
-1. 创建新用户并设置密码
-2. 安装 `apps/` 目录下各分类 CSV 中列出的软件
-3. 安装 `composer`（PHP 包管理器）
+**`install_3_apps.sh`**（chroot 环境，root 身份）：
+1. 添加 archlinuxcn 仓库
+2. 安装 yay
+3. 根据用户选择安装软件（统一用 yay）
+4. 启用系统服务（`scripts/enable-services.sh`）
+5. 系统级应用配置（`scripts/config-apps-system.sh`）
 
-**第四个脚本 `install_4_user.sh`**：
-1. 通过 yay（AUR 仓库）安装 pacman 未找到的软件
-2. 部署 dotfiles 配置文件
+**`install_4_user.sh`**（chroot 环境，普通用户身份）：
+1. 创建用户目录（`scripts/create-directories.sh`）
+2. 用户级应用配置（`scripts/config-apps-user.sh`）
 
-## 💻 安装了哪些软件？
+## 📂 目录结构
 
-打开 `apps/` 目录下的各分类 CSV 文件即可查看完整列表。
+```
+apps/                       软件列表 CSV（按分类）
+  audio.csv                 音频 / 蓝牙
+  base.csv                  基础系统（必装）
+  chinese.csv               中文支持
+  desktop.csv               桌面环境
+  dev.csv                   开发工具
+  network.csv               网络工具
+  shell.csv                 Shell
+  tools.csv                 实用工具
+
+files/                      纯配置文件
+  i3/config                 i3 窗口管理器配置
+  sddm.conf                 SDDM 登录管理器配置
+  sudoers                   sudo 权限配置
+  v2raya/                   v2rayA 代理配置
+
+scripts/                    可执行脚本（按需修改）
+  enable-services.sh        🔒 root 级 — 启用系统服务
+  config-apps-system.sh     🔒 root 级 — 系统级应用配置
+  config-apps-user.sh       👤 用户级 — 个人应用配置
+  create-directories.sh     👤 用户级 — 创建用户目录
+```
+
+## 📋 CSV 格式
+
+```
+包名,说明,优先级
+```
+
+优先级：
+* **必装** — 脚本自动安装，不出现在选择界面
+* **默认** — 预选中，用户可取消
+* **可选** — 未选中，用户手动勾选

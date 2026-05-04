@@ -1,0 +1,4 @@
+pulseaudio,音频服务,必装
+pulseaudio-bluetooth,蓝牙音频,必装
+bluez,蓝牙协议栈,必装
+bluez-utils,蓝牙工具,必装

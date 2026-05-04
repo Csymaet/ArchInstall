@@ -1,0 +1,8 @@
+base,基础系统包组,必装
+linux,Linux 内核,必装
+base-devel,基础开发工具,必装
+linux-firmware,硬件固件,必装
+man-db,手册页,必装
+grub,引导加载器,必装
+efibootmgr,EFI 启动管理,必装
+archlinuxcn-keyring,CN 源密钥环,必装

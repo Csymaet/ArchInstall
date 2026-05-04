@@ -439,7 +439,7 @@ download-apps-csv() {
 
   pacman --noconfirm --needed -S git
   git clone --depth 1 "$repo_url" /tmp/archinstall-repo
-  cp -r /tmp/archinstall-repo/apps "$dest"
+  cp -r /tmp/archinstall-repo/apps/. "$dest"
   rm -rf /tmp/archinstall-repo
 }
 

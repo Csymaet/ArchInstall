@@ -95,13 +95,8 @@ run() {
   # 弹出输入框让用户输入主机名，结果写入临时文件 hn
   # --no-cancel 不允许取消（必须有主机名）
   # 读取后立即删除临时文件
-  local hostname
-  dialog-name-of-computer hn
-  hostname=$(cat hn) && rm hn
-  log INFO "HOSTNAME: $hostname" "$output"
-
   # ==========================================================================
-  # ⑤.1 设置 root 密码
+  # ⑤ 设置 root 密码
   # ==========================================================================
   local root_pass
   dialog-input-password rp "Set password for root user"
@@ -109,8 +104,13 @@ run() {
   log INFO "ROOT PASSWORD SET" "$output"
 
   # ==========================================================================
-  # ⑤.2 设置用户密码
+  # ⑥ 设置主机名和用户密码
   # ==========================================================================
+  local hostname
+  dialog-name-of-computer hn
+  hostname=$(cat hn) && rm hn
+  log INFO "HOSTNAME: $hostname" "$output"
+
   local user_pass
   dialog-input-password up "Set password for user $hostname"
   user_pass=$(cat up) && rm up

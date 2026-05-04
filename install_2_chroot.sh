@@ -43,15 +43,19 @@ run() {
   configure-locale "en_US.UTF-8" "UTF-8"
 
   ## root用户设置
-  log INFO "ADD ROOT" "$output"
+  echo "DEBUG: before config_user root"
   config_user root "$root_pass"
+  echo "DEBUG: after config_user root, /var_user_name exists: $(cat /var_user_name 2>&1)"
 
   ## 添加用户（用户名 = 主机名）
-  log INFO "ADD USER $hostname" "$output"
+  echo "DEBUG: before config_user $hostname"
   config_user "$hostname" "$user_pass"
+  echo "DEBUG: after config_user $hostname, /var_user_name exists: $(cat /var_user_name 2>&1)"
 
   ## 进入下一步，安装应用
+  echo "DEBUG: before continue-install"
   continue-install "$url_installer"
+  echo "DEBUG: after continue-install, /var_user_name exists: $(cat /var_user_name 2>&1)"
 }
 
 log() {
@@ -115,19 +119,20 @@ configure-locale() {
 config_user() {
   local name=${1:?}
   local pass=${2:?}
+  echo "DEBUG: config_user start, name=$name"
 
-  # Create user if doesn't exist
   if [[ ! "$(id -u "$name" 2>/dev/null)" ]]; then
-    echo "Adding user $name..."
+    echo "DEBUG: useradd $name"
     useradd -m -s /bin/bash "$name"
+  else
+    echo "DEBUG: user $name already exists, skip useradd"
   fi
 
-  # Set password
+  echo "DEBUG: chpasswd $name"
   echo "$name:$pass" | chpasswd
-
-  # Save name for later
+  echo "DEBUG: writing /var_user_name = $name"
   echo "$name" >/var_user_name
-  echo "CONFIG_USER: wrote /var_user_name = $name"
+  echo "DEBUG: /var_user_name content = $(cat /var_user_name)"
 }
 
 continue-install() {

@@ -149,11 +149,11 @@ continue-install() {
     local -r url_installer=${1:?}
 
     # dialog --title "Continue installation" --yesno "Do you want to install all the softwares and the dotfiles?" 10 60 \
-        # && curl "$url_installer/install_apps.sh" > /tmp/install_apps.sh \
-        # && bash /tmp/install_apps.sh
+        # && curl "$url_installer/install_3_apps.sh" > /tmp/install_3_apps.sh \
+        # && bash /tmp/install_3_apps.sh
         
-    curl "$url_installer/install_apps.sh" > /tmp/install_apps.sh
-    bash /tmp/install_apps.sh
+    curl "$url_installer/install_3_apps.sh" > /tmp/install_3_apps.sh
+    bash /tmp/install_3_apps.sh
 }
 
 run "$@"

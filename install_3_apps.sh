@@ -64,7 +64,7 @@ run() {
     set-user-permissions
     log INFO "USER PERMISSIONS SET" "$output"
     
-    ## 进入下一步"install_user"
+    ## 进入下一步"install_4_user"
     continue-install "$url_installer" "$name"
 }
 
@@ -280,11 +280,11 @@ continue-install() {
     local -r url_installer=${1:?}
     local -r name=${2:?}
 
-    curl "$url_installer/install_user.sh" > /tmp/install_user.sh;
+    curl "$url_installer/install_4_user.sh" > /tmp/install_4_user.sh;
 
     if [ "$dry_run" = false ]; then
         # Change user and begin the install use script
-        sudo -u "$name" bash /tmp/install_user.sh
+        sudo -u "$name" bash /tmp/install_4_user.sh
     fi
 }
 

@@ -37,7 +37,8 @@ run() {
     selected_apps=$(cat /var_selected_apps)
     echo "$selected_apps" > "/home/$name/install_selected_apps"
     echo "$url_installer" > "/home/$name/install_url"
-    chown "$name" "/home/$name/install_selected_apps" "/home/$name/install_url"
+    curl -Lf "$url_installer/install_5_apps.sh" > "/home/$name/install_5_apps.sh"
+    chown "$name" "/home/$name/install_selected_apps" "/home/$name/install_url" "/home/$name/install_5_apps.sh"
 
     # 进入下一步
     curl -Lf "$url_installer/install_4_user.sh" > /tmp/install_4_user.sh

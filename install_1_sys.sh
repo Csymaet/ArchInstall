@@ -101,7 +101,7 @@ run() {
   # ⑥ 设置 root 密码
   # ==========================================================================
   local root_pass
-  dialog-input-password rp "Set password for root user"
+  dialog-input-password rp "请设置 root 用户密码"
   root_pass=$(cat rp) && rm rp
   log INFO "ROOT PASSWORD SET" "$output"
 
@@ -114,7 +114,7 @@ run() {
   log INFO "HOSTNAME: $hostname" "$output"
 
   local user_pass
-  dialog-input-password up "Set password for user $hostname"
+  dialog-input-password up "请设置用户 $hostname 的密码"
   user_pass=$(cat up) && rm up
   log INFO "USER PASSWORD SET" "$output"
 
@@ -342,7 +342,7 @@ setup-chinese-terminal() {
 
   mkdir -p /etc/kmscon
   cat >/etc/kmscon/kmscon.conf <<EOF
-font-name=DejaVu Sans Mono, WenQuanYi Micro Hei Mono
+font-name=WenQuanYi Micro Hei Mono
 font-size=14
 EOF
 
@@ -372,11 +372,11 @@ install-dialog() {
 # 🛡️ 这是最后的安全阀门，防止用户在不知情的情况下格式化磁盘
 dialog-are-you-sure() {
   dialog --defaultno \
-    --title "Are you sure?" \
-    --yesno "This is my personnal arch linux install. \n\n\
-        It will just DESTROY EVERYTHING on the hard disk of your choice. \n\n\
-        Don't say YES if you are not sure about what you're doing! \n\n\
-        Are you sure?" 15 60 || exit
+    --title "确认" \
+    --yesno "这是个人使用的 Arch Linux 自动安装脚本。\n\n\
+        它会摧毁你选择的硬盘上的所有数据！\n\n\
+        如果你不确定自己在做什么，请不要点"是"！\n\n\
+        确定要继续吗？" 15 60 || exit
 }
 
 # ----------------------------------------------------------------------------
@@ -387,7 +387,7 @@ dialog-are-you-sure() {
 # 2>"$file"   将用户输入重定向到文件（dialog 的标准输出是终端，stderr 是结果）
 dialog-name-of-computer() {
   local file=${1:?}
-  dialog --no-cancel --inputbox "Enter a name for your computer." 10 60 2>"$file"
+  dialog --no-cancel --inputbox "请输入主机名（将同时作为用户名）。" 10 60 2>"$file"
 }
 
 # ----------------------------------------------------------------------------
@@ -403,13 +403,13 @@ dialog-input-password() {
 
   while true; do
     dialog --no-cancel --passwordbox "$prompt" 10 60 2>/tmp/.pass1
-    dialog --no-cancel --passwordbox "Confirm: retype the password" 10 60 2>/tmp/.pass2
+    dialog --no-cancel --passwordbox "确认：请再次输入密码" 10 60 2>/tmp/.pass2
     pass1=$(cat /tmp/.pass1)
     pass2=$(cat /tmp/.pass2)
     rm /tmp/.pass1 /tmp/.pass2
 
     [[ "$pass1" == "$pass2" ]] && break
-    dialog --msgbox "Passwords do not match. Please try again." 10 40
+    dialog --msgbox "两次密码不一致，请重新输入。" 10 40
   done
 
   echo "$pass1" >"$file"
@@ -511,10 +511,10 @@ dialog-what-disk-to-use() {
 
   # --radiolist 单选列表（空格选择，回车确认），--no-cancel 必须选一个
   # 15 60 4 = 高度、宽度、最多显示项数；2>"$file" 将选择结果写入文件（dialog 结果走 stderr）
-  dialog --title "Choose your hard drive" --no-cancel --radiolist \
-    "Where do you want to install your new system?\n\n\
-        Select with SPACE, valid with ENTER.\n\n\
-        WARNING: Everything will be DESTROYED on the hard disk!" 15 60 4 "${devices_list[@]}" 2>"$file"
+  dialog --title "选择硬盘" --no-cancel --radiolist \
+    "你要将系统安装到哪块硬盘？\n\n\
+        用空格选择，回车确认。\n\n\
+        警告：该硬盘上的所有数据将被摧毁！" 15 60 4 "${devices_list[@]}" 2>"$file"
 }
 
 # ----------------------------------------------------------------------------
@@ -525,11 +525,11 @@ dialog-what-disk-to-use() {
 dialog-what-swap-size() {
   local default_size="8"
   local file=${1:?}
-  dialog --no-cancel --inputbox "You need three partitions: Boot, Root and Swap \n\
-        The boot will be 512M\n\
-        The root will be the rest of the hard disk\n\
-        Enter swap size in GB (numbers only, e.g. 4). \n\n\
-        If you dont enter anything: \n\
+  dialog --no-cancel --inputbox "将创建三个分区：Boot、Root 和 Swap\n\
+        Boot 分区大小为 512M\n\
+        Root 分区占用剩余空间\n\
+        请输入 Swap 大小（仅填数字，如 4）。\n\n\
+        如果不输入：\n\
             swap -> ${default_size}G \n\n" 20 60 2>"$file"
 
   local size=$(cat "$file")
@@ -558,11 +558,11 @@ dialog-how-wipe-disk() {
   local -r file=${2:?}
 
   dialog --no-cancel \
-    --title "!!! DELETE EVERYTHING !!!" \
-    --menu "Choose the way to destroy everything on your hard disk ($hd)" 15 60 4 \
-    1 "Use dd (wipe all disk)" \
-    2 "Use schred (slow & secure)" \
-    3 "No need - my hard disk is empty" 2>"$file"
+    --title "清除所有数据" \
+    --menu "选择清除硬盘数据的方式（$hd）" 15 60 4 \
+    1 "使用 dd（全盘覆写）" \
+    2 "使用 shred（慢但更安全）" \
+    3 "不需要 - 硬盘已经是空的" 2>"$file"
 }
 
 # ----------------------------------------------------------------------------
@@ -774,8 +774,8 @@ clean() {
 # 选"是" → reboot 重启进入新安装的系统
 # 选"否" → clear 清屏，留在 Live USB 环境（可手动检查或继续调试）
 end-of-install() {
-  dialog --title "Reboot time" \
-    --yesno "Congrats! The install is done! \n\nTo run the new graphical environment, you need to restart your computer. \n\nDo you want to restart now?" 20 60
+  dialog --title "安装完成" \
+    --yesno "恭喜！Arch Linux 安装完成！\n\n要进入图形界面，需要重启电脑。\n\n现在重启吗？" 20 60
 
   response=$?
   case $response in

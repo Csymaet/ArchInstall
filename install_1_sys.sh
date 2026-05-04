@@ -21,7 +21,15 @@
 #   -o pipefail  管道中任一命令失败则整个管道失败
 set -euo pipefail
 
-trap 'echo "❌ 脚本在第 $LINENO 行出错，退出码: $?" > /tmp/install_crash.log' ERR
+trap '
+if [[ $_normal_exit != 1 ]]; then
+  echo ""
+  echo "❌ 脚本异常退出，退出码: $?"
+  echo "30 秒后自动退出..."
+  sleep 30
+fi
+kill "$PPID" 2>/dev/null
+' EXIT
 
 # ----------------------------------------------------------------------------
 # 📡 安装脚本的远程仓库地址
@@ -62,13 +70,6 @@ run() {
   done
 
   log INFO "DRY RUN? $dry_run" "$output"
-
-  if [[ -f /tmp/install_crash.log ]]; then
-    dialog --title "上次运行出错" --msgbox "$(cat /tmp/install_crash.log)" 10 50
-    rm /tmp/install_crash.log
-    kill "$PPID" 2>/dev/null
-    exit 1
-  fi
 
   # ==========================================================================
   # ② 配置 pacman 镜像源
@@ -396,7 +397,7 @@ dialog-are-you-sure() {
     --yesno "这是个人使用的 Arch Linux 自动安装脚本。\n\n\
         它会摧毁你选择的硬盘上的所有数据！\n\n\
         如果你不确定自己在做什么，请不要点"是"！\n\n\
-        确定要继续吗？" 15 60 || { kill "$PPID"; exit 1; }
+        确定要继续吗？" 15 60 || exit 1
 }
 
 # ----------------------------------------------------------------------------
@@ -802,3 +803,4 @@ end-of-install() {
 # 脚本入口：将所有命令行参数传给 run 函数
 # ============================================================================
 run "$@"
+_normal_exit=1

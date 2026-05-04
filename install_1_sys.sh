@@ -91,7 +91,7 @@ run() {
   if [[ ! -f /tmp/.kmscon_done ]]; then
     dialog --msgbox "Chinese terminal will be installed.\n\nAfter installation, the script will restart automatically." 10 50
     setup-chinese-terminal
-    exec kmscon --login -- /bin/bash "$0"
+    exec kmscon --no-reset-env --login -- /bin/bash "$0"
   fi
 
   # ==========================================================================
@@ -353,6 +353,7 @@ EOF
 
   touch /tmp/.kmscon_done
   echo "LANG=zh_CN.UTF-8" >/etc/locale.conf
+  export LANG=zh_CN.UTF-8
 }
 
 # ----------------------------------------------------------------------------

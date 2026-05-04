@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 run() {
     output=$(cat /var_output)
@@ -58,7 +59,9 @@ install-yay() {
 # yay 同时支持 pacman 仓库和 AUR，无需区分
 install-apps() {
     local -r apps=${1:?}
-    [[ -n "$apps" ]] && yay --noconfirm --needed -S $apps
+    if [[ -n "$apps" ]]; then
+        yay --noconfirm --needed -S $apps
+    fi
 }
 
 # 从远程仓库下载配置脚本并执行

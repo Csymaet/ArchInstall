@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 run() {
   output=$(cat /var_output)

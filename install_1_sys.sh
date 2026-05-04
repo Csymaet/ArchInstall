@@ -40,11 +40,11 @@ kill "$PPID" 2>/dev/null
 # url-installer: 用于下载单个脚本文件（raw 文件地址）
 # repo-installer: 用于 git clone 整个仓库
 url-installer() {
-  echo "https://gitee.com/unityw/ArchInstall/raw/master"
+  echo "https://gitee.com/unityw/tool015_-arch-install/raw/master"
 }
 
 repo-installer() {
-  echo "https://gitee.com/unityw/ArchInstall.git"
+  echo "https://gitee.com/unityw/tool015_-arch-install.git"
 }
 
 # ============================================================================

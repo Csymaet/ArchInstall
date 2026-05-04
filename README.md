@@ -4,7 +4,7 @@
 
 **⚠️ 警告**：本脚本仅供参考，请勿直接在你的系统上运行。如果你想试用（建议使用虚拟机），需要：
 
-1. `curl` 下载第一个脚本 `install_1_sys.sh`（`curl -LfO https://gitee.com/unityw/ArchInstall/raw/master/install_1_sys.sh && sh install_1_sys.sh`）
+1. `curl` 下载第一个脚本 `install_1_sys.sh`（`curl -LfO https://gitee.com/unityw/tool015_-arch-install/raw/master/install_1_sys.sh && sh install_1_sys.sh`）
 2. 根据需要修改文件中的 `url-installer` 和 `repo-installer` 函数
 3. 运行
 

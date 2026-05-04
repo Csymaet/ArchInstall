@@ -55,11 +55,9 @@ run() {
   # ① 解析命令行参数
   # ==========================================================================
   # -d  干跑模式开关（true = 只打印日志，跳过所有破坏性操作）
-  # -o  日志输出目标（默认 /dev/tty2，即第二个虚拟终端）
-  #     用户在 tty1 操作，日志输出到 tty2，互不干扰
-  #     可通过 Ctrl+Alt+F2 切换到 tty2 查看日志
+  # -o  日志输出目标（默认 /tmp/install.log）
   local dry_run=${dry_run:-false}
-  local output=${output:-/dev/tty2}
+  local output=${output:-/tmp/install.log}
 
   # getopts 解析选项：d: 和 o: 后面的冒号表示该选项需要一个参数
   # OPTARG 是 getopts 内置变量，保存当前选项的参数值
@@ -754,6 +752,7 @@ install-chroot() {
 # 删除之前保存到 /mnt/ 下的临时状态文件
 # 这些文件只在 run() 函数中写入、在第二阶段脚本中读取，完成后即可删除
 clean() {
+  rm /mnt/install_2_chroot.sh
   rm /mnt/var_uefi
   rm /mnt/var_disk
   rm /mnt/var_hostname

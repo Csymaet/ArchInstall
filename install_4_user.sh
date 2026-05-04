@@ -1,7 +1,7 @@
 #!/bin/bash
 
 run() {
-  output="/home/$(whoami)/install_log"
+  output=$(cat /var_output)
   url_installer=$(cat /var_url_installer)
   # dry_run=$(cat /var_dry_run)
   cd /tmp

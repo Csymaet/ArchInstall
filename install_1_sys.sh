@@ -208,28 +208,18 @@ run() {
     wipe-fs "$disk" || { log ERROR "wipe-fs failed for $disk" "$output"; exit 1; }
   fi
 
-  local uefi_val boot_type
+  local uefi_val
   uefi_val=$(is-uefi)
 
   # ==========================================================================
   # ⑰ 创建 GPT 分区表和分区
   # ==========================================================================
-  # 分区方案（共 2 个分区，无 Swap）：
-  #   分区1：512M — Boot 分区（EFI System Partition 或 BIOS Boot Partition）
-  #   分区2：剩余  — Root 根分区
-  #
-  # 调用链：
-  #   is-uefi()           → 检测是否 UEFI 启动，返回 1(UEFI) 或 0(BIOS)
-  #   boot-partition()    → 根据启动模式返回 fdisk 分区类型 ID
-  #                          UEFI → 1 (EFI System Partition)
-  #                          BIOS → 4 (BIOS Boot Partition)
-  #   fdisk-partition()   → 用 fdisk 创建 GPT 分区表和分区
-  #
-  # 🔒 dry_run 模式下跳过此步骤
+  # 使用 sfdisk（声明式分区工具）创建 GPT 分区表
+  #   分区1：512MiB — Boot（UEFI=EFI System, BIOS=BIOS Boot）
+  #   分区2：剩余空间 — Root (Linux filesystem)
   if [[ "$dry_run" = false ]]; then
-    boot_type=$(boot-partition "$uefi_val")
-    log INFO "CREATE PARTITIONS: disk=$disk uefi=$uefi_val boot_type=$boot_type" "$output"
-    fdisk-partition "$disk" "$boot_type" || { log ERROR "fdisk-partition failed for $disk" "$output"; exit 1; }
+    log INFO "CREATE PARTITIONS: disk=$disk uefi=$uefi_val" "$output"
+    fdisk-partition "$disk" "$uefi_val" || { log ERROR "fdisk-partition failed for $disk" "$output"; exit 1; }
   fi
 
   # ==========================================================================
@@ -635,52 +625,35 @@ wipe-fs() {
 }
 
 # ----------------------------------------------------------------------------
-# boot-partition — 根据 UEFI/BIOS 模式返回 fdisk 分区类型 ID
-# ----------------------------------------------------------------------------
-# 返回值：
-#   UEFI 模式 → 1 (EFI System Partition，GPT 类型代码)
-#   BIOS 模式 → 4 (BIOS Boot Partition，GRUB 在 GPT 磁盘上需要此类型)
-#
-# 💡 fdisk 中的 't' 命令用于更改分区类型，后面的数字就是类型代码
-boot-partition() {
-  local -r uefi=${1:?}
-  local boot_partition_type=1
-  [[ "$uefi" == 0 ]] && local boot_partition_type=4
 
-  echo "$boot_partition_type"
-}
-
+# fdisk-partition — 使用 sfdisk 创建 GPT 分区表和分区
 # ----------------------------------------------------------------------------
-# fdisk-partition — 使用 fdisk 创建 GPT 分区表和分区
-# ----------------------------------------------------------------------------
-# 流程（通过 heredoc <<EOF 传入 fdisk 的交互式命令序列）：
+# sfdisk 是声明式分区工具，通过文本描述分区布局，不需要交互式输入
+# 比 fdisk heredoc 更可靠，不存在空行/不可见字符问题
 #
-#   g              创建新的空 GPT 分区表（⚠️ 会清除原有分区表）
-#   n ↵ ↵ +512M   新建分区1（默认起始扇区，大小 512M）— Boot 分区
-#   t <type_id>    设置分区1的类型（UEFI=1, BIOS=4）
-#   n ↵ ↵ ↵       新建分区2（默认起始扇区，占满剩余空间）— Root 分区
-#   w              写入分区表到磁盘并退出
+# 分区方案：
+#   分区1：512MiB — Boot 分区
+#   分区2：剩余空间 — Root 分区
 #
-# 空行 = 按回车（接受默认值，即使用第一个可用的扇区）
-#
-# partprobe 通知内核重新读取分区表，确保 fdisk 的更改立即生效
+# GPT 类型 UUID：
+#   UEFI:  C12A7328-F81F-11D2-BA4B-00A0C93EC93B (EFI System Partition)
+#   BIOS:  21686148-6449-6E6F-744E-656564454649 (BIOS Boot Partition)
+#   Linux: 0FC63DAF-8483-4772-8E79-3D69D8477DE4 (Linux filesystem)
 fdisk-partition() {
   local -r hd=${1:?}
-  local -r boot_partition_type=${2:?}
-  # local -r swap_size=${3:?}
+  local -r uefi=${2:?}
 
-  fdisk "$hd" <<EOF
-g
-n
+  local boot_type
+  if [[ "$uefi" == 1 ]]; then
+    boot_type="C12A7328-F81F-11D2-BA4B-00A0C93EC93B"
+  else
+    boot_type="21686148-6449-6E6F-744E-656564454649"
+  fi
 
-+512M
-t
-$boot_partition_type
-n
-
-
-
-w
+  sfdisk "$hd" <<EOF
+label: gpt
+type=$boot_type, size=512MiB
+type=0FC63DAF-8483-4772-8E79-3D69D8477DE4
 EOF
 
   partprobe "$hd"

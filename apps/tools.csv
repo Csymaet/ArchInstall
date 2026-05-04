@@ -5,5 +5,6 @@ flameshot,截图工具,默认
 termdown,终端倒计时,默认
 ntfs-3g,NTFS 文件系统支持,可选
 termscp,文件传输工具,默认
-clitrans-git,命令行翻译 (AUR),默认
+clitrans-git,命令行翻译 (AUR),可选
 firefox,Firefox 浏览器,默认
+trash-cli,命令行回收站,默认

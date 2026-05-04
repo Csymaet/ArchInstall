@@ -139,7 +139,7 @@ config_user() {
 continue-install() {
   local -r url_installer=${1:?}
 
-  curl "$url_installer/install_3_apps.sh" >/tmp/install_3_apps.sh
+  curl -Lf "$url_installer/install_3_apps.sh" >/tmp/install_3_apps.sh
   bash /tmp/install_3_apps.sh
 }
 

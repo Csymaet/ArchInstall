@@ -65,20 +65,20 @@ install-apps() {
 run-remote-script() {
     local -r script_name=${1:?}
     local -r tmp="/tmp/$script_name"
-    curl "$url_installer/scripts/$script_name" >"$tmp"
+    curl -Lf "$url_installer/scripts/$script_name" >"$tmp"
     bash "$tmp" "$url_installer" "$name"
     rm "$tmp"
 }
 
 set-user-permissions() {
-    curl "$url_installer/files/sudoers" > /etc/sudoers
+    curl -Lf "$url_installer/files/sudoers" > /etc/sudoers
 }
 
 continue-install() {
     local -r url_installer=${1:?}
     local -r name=${2:?}
 
-    curl "$url_installer/install_4_user.sh" > /tmp/install_4_user.sh
+    curl -Lf "$url_installer/install_4_user.sh" > /tmp/install_4_user.sh
 
     if [ "$dry_run" = false ]; then
         sudo -u "$name" bash /tmp/install_4_user.sh

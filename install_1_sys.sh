@@ -744,7 +744,7 @@ install-arch-linux() {
 install-chroot() {
   local -r installer_url=${1:?}
 
-  curl "$installer_url/install_2_chroot.sh" >/mnt/install_2_chroot.sh
+  curl -Lf "$installer_url/install_2_chroot.sh" >/mnt/install_2_chroot.sh
   arch-chroot /mnt bash install_2_chroot.sh
 }
 

@@ -27,7 +27,7 @@ log() {
 run-remote-script() {
   local -r script_name=${1:?}
   local -r tmp="/tmp/$script_name"
-  curl "$url_installer/scripts/$script_name" >"$tmp"
+  curl -Lf "$url_installer/scripts/$script_name" >"$tmp"
   bash "$tmp" "$url_installer"
   rm "$tmp"
 }

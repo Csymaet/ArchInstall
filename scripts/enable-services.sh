@@ -1,13 +1,10 @@
 #!/bin/bash
-# 🔒 以 root 身份运行（由 install_3_apps.sh 调用）
-# 启用系统服务
+# 启用系统服务（网络服务已在 install_3 中启用）
 # 按需增删 systemctl enable 行即可
 # 仅在对应软件已安装时启用
 
-command -v iwd &>/dev/null && systemctl enable iwd.service
-command -v dhcpcd &>/dev/null && systemctl enable dhcpcd.service
-command -v sshd &>/dev/null && systemctl enable sshd.service
-command -v sddm &>/dev/null && systemctl enable sddm.service
-command -v docker &>/dev/null && systemctl enable docker.service
-[[ -f /usr/lib/systemd/system/bluetooth.service ]] && systemctl enable bluetooth.service
-command -v v2raya &>/dev/null && systemctl enable v2raya.service
+command -v sshd &>/dev/null && sudo systemctl enable sshd.service
+command -v sddm &>/dev/null && sudo systemctl enable sddm.service
+command -v docker &>/dev/null && sudo systemctl enable docker.service
+[[ -f /usr/lib/systemd/system/bluetooth.service ]] && sudo systemctl enable bluetooth.service
+command -v v2raya &>/dev/null && sudo systemctl enable v2raya.service

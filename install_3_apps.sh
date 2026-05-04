@@ -23,11 +23,11 @@ run() {
 
     # 启动服务
     log INFO "ENABLE SERVICES" "$output"
-    enable-services
+    run-remote-script "enable-services.sh"
 
     # 配置应用
     log INFO "CONFIG APPS" "$output"
-    config-apps
+    run-remote-script "config-apps.sh"
 
     # 设置 sudo 权限
     set-user-permissions
@@ -61,39 +61,13 @@ install-apps() {
     [[ -n "$apps" ]] && yay --noconfirm --needed -S $apps
 }
 
-enable-services() {
-    systemctl enable dhcpcd.service
-    systemctl enable sshd.service
-    systemctl enable sddm.service
-    # 仅在对应软件已安装时启用
-    command -v docker &>/dev/null && systemctl enable docker.service
-    command -v bluetoothd &>/dev/null && systemctl enable bluetooth.service
-    command -v v2raya &>/dev/null && systemctl enable v2raya.service
-}
-
-config-apps() {
-    # profile：登录后自动进入 ~/myfile 目录
-    echo -e "\n# 进入我的目录\nif [ -d ~/myfile ]; then\n  cd ~/myfile\nfi" >> /etc/profile
-
-    # sddm 登录管理器配置
-    command -v sddm &>/dev/null && {
-        mkdir -p /etc/sddm.conf.d
-        curl "$url_installer/files/sddm.conf" > /etc/sddm.conf.d/sddm.conf
-    }
-
-    # docker：将用户加入 docker 组
-    command -v docker &>/dev/null && gpasswd -a "$name" docker
-
-    # v2raya 配置
-    command -v v2raya &>/dev/null && {
-        REDACTED
-        curl "$url_installer/files/REDACTED" > /etc/REDACTED
-        curl "$url_installer/files/REDACTED" > /etc/REDACTED
-        curl "$url_installer/files/REDACTED" > /etc/REDACTED
-    }
-
-    # zsh 设为默认 shell
-    command -v zsh &>/dev/null && chsh -s /bin/zsh "$name"
+# 从远程仓库下载配置脚本并执行
+run-remote-script() {
+    local -r script_name=${1:?}
+    local -r tmp="/tmp/$script_name"
+    curl "$url_installer/scripts/$script_name" >"$tmp"
+    bash "$tmp"
+    rm "$tmp"
 }
 
 set-user-permissions() {

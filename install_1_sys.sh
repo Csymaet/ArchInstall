@@ -21,6 +21,7 @@
 #   -o pipefail  管道中任一命令失败则整个管道失败
 set -euo pipefail
 
+_normal_exit=0
 trap '
 if [[ $_normal_exit != 1 ]]; then
   echo ""

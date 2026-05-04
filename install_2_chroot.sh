@@ -45,17 +45,13 @@ run() {
   ## root用户设置
   log INFO "ADD ROOT" "$output"
   config_user root "$root_pass" "$output"
-  log INFO "after config_user root, /var_user_name = $(cat /var_user_name 2>&1)" "$output"
 
   ## 添加用户（用户名 = 主机名）
   log INFO "ADD USER $hostname" "$output"
   config_user "$hostname" "$user_pass" "$output"
-  log INFO "after config_user $hostname, /var_user_name = $(cat /var_user_name 2>&1)" "$output"
 
   ## 进入下一步，安装应用
-  log INFO "BEFORE continue-install" "$output"
   continue-install "$url_installer"
-  log INFO "AFTER continue-install, /var_user_name = $(cat /var_user_name 2>&1)" "$output"
 }
 
 log() {
@@ -120,20 +116,13 @@ config_user() {
   local name=${1:?}
   local pass=${2:?}
   local out=${3:?}
-  log INFO "config_user start, name=$name" "$out"
 
   if [[ ! "$(id -u "$name" 2>/dev/null)" ]]; then
-    log INFO "useradd $name" "$out"
     useradd -m -s /bin/bash "$name"
-  else
-    log INFO "user $name already exists, skip useradd" "$out"
   fi
 
-  log INFO "chpasswd $name" "$out"
   echo "$name:$pass" | chpasswd
-  log INFO "writing /var_user_name = $name" "$out"
   echo "$name" >/var_user_name
-  log INFO "/var_user_name content = $(cat /var_user_name)" "$out"
 }
 
 continue-install() {

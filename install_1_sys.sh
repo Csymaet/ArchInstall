@@ -754,7 +754,6 @@ install-chroot() {
 # 删除之前保存到 /mnt/ 下的临时状态文件
 # 这些文件只在 run() 函数中写入、在第二阶段脚本中读取，完成后即可删除
 clean() {
-  echo "CLEAN: var files in /mnt: $(ls /mnt/var_* 2>&1)"
   rm /mnt/var_uefi
   rm /mnt/var_disk
   rm /mnt/var_hostname

@@ -8,10 +8,10 @@ run() {
     url_installer=$(cat /var_url_installer)
     dry_run=$(cat /var_dry_run)
 
-    ## 下载apps.csv
-    # log INFO "DOWNLOAD APPS CSV" "$output"
-    # apps_path="$(download-app-csv "$url_installer")"
-    # log INFO "APPS CSV DOWNLOADED AT: $apps_path" "$output"
+    ## 下载apps目录
+    # log INFO "DOWNLOAD APPS DIR" "$output"
+    # apps_dir="$(download-apps-dir "$url_installer")"
+    # log INFO "APPS DIR DOWNLOADED AT: $apps_dir" "$output"
 
     # 为steam添加multilib仓库
     # add-multilib-repo
@@ -39,10 +39,10 @@ run() {
 
     ## 显示软件选择界面
     # dialog-welcome
-    # dialog-choose-apps ch # 会返回一系列名称，用空格分隔
+    # dialog-choose-apps ch "$apps_dir"
     # choices=$(cat ch) && rm ch
     # log INFO "APP CHOOSEN: $choices" "$output"
-    # lines="$(extract-choosed-apps "$choices" "$apps_path")" # 从apps.csv中提取出软件包的具体名称
+    # lines="$(extract-choosed-apps "$choices" "$apps_dir")" # 从选中分类的csv中提取出软件包
     # log INFO "GENERATED LINES: $lines" "$output"
     # apps="$(extract-app-names "$lines")" # 提取第二列(软件包名称)
     # log INFO "APPS: $apps" "$output"
@@ -77,13 +77,18 @@ log() {
     echo -e "${timestamp} [${level}] ${message}" >>"$output"
 }
 
-download-app-csv() {
+download-apps-dir() {
     local -r url_installer=${1:?}
 
-    apps_path="/tmp/apps.csv"
-    curl "$url_installer/apps.csv" > "$apps_path"
+    apps_dir="/tmp/apps"
+    mkdir -p "$apps_dir"
 
-    echo $apps_path
+    # 获取远程 apps/ 目录下所有 csv 文件名，逐个下载
+    for csv_file in $(curl -sL "$url_installer/apps/" | grep -oP 'href="\K[^"]*\.csv' | sort -u); do
+        curl "$url_installer/apps/$csv_file" > "$apps_dir/$csv_file"
+    done
+
+    echo $apps_dir
 }
 
 # Add multilib repo for steam
@@ -139,64 +144,29 @@ dialog-welcome() {
 
 dialog-choose-apps() {
     local file=${1:?}
+    local apps_dir=${2:?}
 
-    apps=("essential" "Essentials" on
-        "compression" "Compression Tools" on
-        "tools" "Very nice tools to have (highly recommended)" on
-        "audio" "Audio tools" on
-        "network" "Network Configuration" off
-        "git" "Git & git tools" on
-        "i3" "i3 Tile manager & Desktop" on
-        "tmux" "Tmux" on
-        "neovim" "Neovim" on
-        "keyring" "Keyring applications" on
-        "urxvt" "Urxvt unicode" on
-        "zsh" "Unix Z-Shell (zsh)" on
-        "ripgrep" "Ripgrep" on \
-        "qutebrowser" "Qutebrowser" on
-        "notify" "Notifications with dunst & libnotify" on
-        "gtk" "GTK 3 themes and icons" on
-        "programming" "Programming environments (PHP, Ruby, Go, Docker, Clojure)" on
-        "keepass" "Keepass" on
-        "sql" "Mysql (mariadb) & mysql tools" on
-        "office" "Office tools (Libreoffice...)" off
-        "multimedia" "Multimedia" off
-        "videography" "Video creation" off
-        "graphism" "Design" off
-        "photography" "Photography tools" off
-        "firefox" "Firefox (browser)" off
-        "brave" "brave (browser)" off
-        "newsboat" "RSS Feed Reader" on
-        "joplin" "Note taking system" off
-        "thunar" "Graphical file manager" off
-        "thunderbird" "Thunderbird" off
-        "pandoc" "Pandoc and usefull dependencies" off
-        "syncthing" "Sync files via P2P" off
-        "rover" "Simple file browser for the terminal" off
-        "language" "Language tools" off
-        "nextcloud" "Nextcloud client" off
-        "hugo" "Hugo static site generator" off
-        "freemind" "Freemind - mind mapping software" off
-        "doublecmd" "Double Commander - File explorer a la FreeCommander" off
-        "vmware" "Vmware tools" off
-        "gaming" "Almost everything for gaming on Linux" off)
+    apps=()
+    for csv_file in "$apps_dir"/*.csv; do
+        category=$(basename "$csv_file" .csv)
+        apps+=("$category" "$category" on)
+    done
 
-    dialog --checklist "You can now choose the groups of applications you want to install, according to your own CSV file.\n\n Press SPACE to select and ENTER to validate your choices." 0 0 0 "${apps[@]}" 2> "$file"
+    dialog --checklist "选择要安装的软件分类（空格选择，回车确认）" 0 0 0 "${apps[@]}" 2> "$file"
 }
 
 extract-choosed-apps() {
     local -r choices=${1:?}
-    local -r apps_path=${2:?}
+    local -r apps_dir=${2:?}
 
-    selection="^$(echo $choices | sed -e 's/ /,|^/g'),"
-    lines=$(grep -E "$selection" "$apps_path")
-
-    echo "$lines"
+    for category in $choices; do
+        cat "$apps_dir/${category}.csv" 2>/dev/null
+    done
 }
 
 extract-app-names() {
     local -r lines=${1:?}
-    echo "$lines" | awk -F, '{print $2}'
+    echo "$lines" | awk -F, '{print $1}'
 }
 
 update-system() {

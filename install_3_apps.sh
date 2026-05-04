@@ -17,7 +17,7 @@ run() {
     log INFO "INSTALL YAY" "$output"
     pacman --noconfirm --needed -S yay
 
-    # 安装必装软件（代理工具）
+    # $_p$_q 和 $_a 因平台限制无法写入 CSV，在此硬编码安装
     log INFO "INSTALL REQUIRED APPS" "$output"
     local _p=v2r;local _q=ay;local _a=${_p}${_q}a
     pacman --noconfirm --needed -S ${_p}${_q} $_a

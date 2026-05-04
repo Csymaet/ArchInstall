@@ -48,9 +48,9 @@ run() {
   # OPTARG 是 getopts 内置变量，保存当前选项的参数值
   while getopts d:o: option; do
     case "${option}" in
-    d) dry_run=${OPTARG} ;;  # 例如：-d true
-    o) output=${OPTARG} ;;   # 例如：-o /tmp/install.log
-    *) ;;                    # 忽略未知选项
+    d) dry_run=${OPTARG} ;; # 例如：-d true
+    o) output=${OPTARG} ;;  # 例如：-o /tmp/install.log
+    *) ;;                   # 忽略未知选项
     esac
   done
 
@@ -139,15 +139,16 @@ run() {
   # 使用 wipefs 擦除磁盘上所有分区的文件系统签名
   # 比 dd/shred 快得多（只擦签名，不覆写数据），效果等同"清除分区表"
   # 内部会倒序擦除（sda3→sda2→sda1），避免分区表变化导致设备节点消失
-  wipe-fs "$disk"
+  [[ "$dry_run" = false ]] &&
+    log INFO "WIPE FILESYSTEM SIGNATURES" "$output" &&
+    wipe-fs "$disk"
 
   # ==========================================================================
   # ⑪ 创建 GPT 分区表和分区
   # ==========================================================================
   # 分区方案（共 3 个分区，无 Swap）：
-  #   分区1：2G    — Boot 分区（EFI System Partition 或 BIOS Boot Partition）
-  #   分区2：100G  — Root 根分区
-  #   分区3：剩余  — Home 分区
+  #   分区1：512M — Boot 分区（EFI System Partition 或 BIOS Boot Partition）
+  #   分区2：剩余  — Root 根分区
   #
   # 调用链：
   #   is-uefi()           → 检测是否 UEFI 启动，返回 1(UEFI) 或 0(BIOS)
@@ -274,7 +275,7 @@ run() {
 # 输出格式：2025-01-01 12:00:00 [INFO] 消息内容
 # 注意：使用 >> 追加写入，不会覆盖已有日志
 log() {
-  local -r level=${1:?}      # -r 表示只读，:? 表示必填
+  local -r level=${1:?} # -r 表示只读，:? 表示必填
   local -r message=${2:?}
   local -r output=${3:?}
   local -r timestamp=$(date +"%Y-%m-%d %H:%M:%S")
@@ -503,13 +504,9 @@ g
 n
 
 
-+2G
++512M
 t
 $boot_partition_type
-n
-
-
-+100G
 n
 
 
@@ -528,7 +525,6 @@ EOF
 #
 # 挂载结构：
 #   /mnt           ← 分区2（Root，ext4）
-#   /mnt/home      ← 分区3（Home，ext4）
 #   /mnt/boot/efi  ← 分区1（Boot，FAT32，仅 UEFI 模式）
 #
 # FAT32 是 EFI 标准要求的文件系统格式，BIOS 模式不需要单独格式化 Boot 分区
@@ -539,18 +535,9 @@ format-partitions() {
   # NVMe 磁盘分区名带 'p'（nvme0n1p1 vs sda1）
   echo "$hd" | grep -E 'nvme' &>/dev/null && hd="${hd}p"
 
-  # Swap 分区（当前禁用）
-  # mkswap "${hd}2"
-  # swapon "${hd}2"
-
   # 格式化并挂载 Root 分区
   mkfs.ext4 "${hd}2"
   mount "${hd}2" /mnt
-
-  # 格式化并挂载 Home 分区
-  mkfs.ext4 "${hd}3"
-  mkdir -p /mnt/home
-  mount "${hd}3" /mnt/home
 
   # UEFI 模式：格式化 Boot 分区为 FAT32 并挂载
   log INFO "$uefi" "$output"
@@ -598,18 +585,9 @@ select-mirror-source() {
 #   自动生成文件系统挂载表（fstab），新系统启动时根据此文件自动挂载分区
 #   -U 使用 UUID 标识分区（比设备名更稳定，不会因磁盘插拔顺序变化）
 install-arch-linux() {
-  pacstrap /mnt base linux base-devel linux-firmware man-db \
-    grub efibootmgr \
-    iwd dhcpcd openssh \
-    git neovim \
-    pulseaudio pulseaudio-bluetooth \
-    bluez-utils bluez \
-    wqy-zenhei fcitx5-im fcitx5-chinese-addons \
-    i3 dmenu xorg-server tmux \
-    konsole yakuake \
-    firefox \
-    tree ranger imlib2 \
-    flameshot termdown docker ntfs-3g
+  pacstrap /mnt base linux linux-firmware grub \
+    base-devel efibootmgr \
+    iwd dhcpcd git
 
   genfstab -U /mnt >>/mnt/etc/fstab
 }

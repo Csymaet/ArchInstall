@@ -1,47 +1,39 @@
-# Phantas0s Arch Install
+# Arch Linux 自动安装脚本
 
-[![Mousless Development Environment](screen_780.png)](screen.png)
+这是一组用于自动安装 Arch Linux 的脚本。
 
-This is my scripts to install easily Arch Linux.
+**⚠️ 警告**：本脚本仅供参考，请勿直接在你的系统上运行。如果你想试用（建议使用虚拟机），需要：
 
-**WARNING**: This set of script should be used for inspiration, don't run them on your system. If you want to try to install everything (I would advise you to use a VM) you have to 
+1. `curl` 下载第一个脚本 `install_sys.sh`（`curl -LO https://raw.githubusercontent.com/Csymaet/ArchInstall/master/install_sys.sh && sh install_sys.sh`）
+2. 根据需要修改文件中的 `url_installer` 函数。
+3. 运行。
 
-1. `curl` the first script `install_sys.sh` (`curl -LO https://raw.githubusercontent.com/Phantas0s/ArchInstall/master/install_sys.sh && sh install_sys.sh`)
-2. Change the function `url_installer` in the file if you want to.
-3. Launch it.
+然后按照提示操作即可。
 
-Then, follow the instructions. Don't expect a lot of choices though.
+## 📦 脚本说明
 
-## What's in there? 
+所有脚本都从 `install_sys.sh` 调用。
 
-Every scripts are called from `install_sys.sh`.
+**第一个脚本 `install_sys.sh`**：
+1. 清空所选磁盘上的所有数据
+2. 创建分区
+    * Boot 分区 200M
+    * Swap 分区
+    * Root 分区
 
-The first script `install_sys`.sh will:
-1. Erase everything on the disk of your choice
-2. Create partitions
-    - Boot partition of 200M
-    - Swap partition
-    - Root partition
+**第二个脚本 `install_chroot.sh`**：
+1. 设置 locale / 时区
+2. 配置 Grub 引导
 
-The second script `install_chroot` will:
-1. Set up locale / time
-2. Set up Grub for the boot
+**第三个脚本 `install_apps.sh`**：
+1. 创建新用户并设置密码
+2. 安装 `apps.csv` 中列出的所有软件
+3. 安装 `composer`（PHP 包管理器）
 
-The third script `install_apps` will:
-1. Create a new user with password
-2. Install every software specified in `progs.csv`
-3. Install `composer` (PHP package manager)
+**第四个脚本 `install_user.sh`**：
+1. 通过 yay（AUR 仓库）安装 pacman 未找到的软件
+2. 部署 dotfiles 配置文件
 
-The fourth script `install_user` will:
-1. Try to install every software not found by pacman with yay (AUR repos)
-2. Install my [dotfiles](https://github.com/Phantas0s/.dotfiles)
+## 💻 安装了哪些软件？
 
-## What software are installed?
-
-Opening `apps.csv` will answer your question.
-
-## Building Your Mouseless Development Environment
-
-Switching between a keyboard and mouse costs cognitive energy. [My book will help you set up a Linux-based development environment](https://themouseless.dev) that keeps your hands on your keyboard. Take the brain power you've been using to juggle input devices and focus it where it belongs: on the things you create.
-
-You'll learn how to write your own installation scripts too!
+打开 `apps.csv` 即可查看完整列表。

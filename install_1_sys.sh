@@ -776,6 +776,7 @@ clean() {
 # 选"是" → reboot 重启进入新安装的系统
 # 选"否" → clear 清屏，留在 Live USB 环境（可手动检查或继续调试）
 end-of-install() {
+  _normal_exit=1
   dialog --title "安装完成" \
     --yesno "恭喜！Arch Linux 安装完成！\n\n要进入图形界面，需要重启电脑。\n\n现在重启吗？" 20 60
 

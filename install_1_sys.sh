@@ -83,7 +83,7 @@ run() {
   # Linux 内核 TTY 不支持中文（512 字形硬限制）
   # 通过 kmscon（用户空间终端）绕过，支持完整 UTF-8 / CJK
   # 首次运行时安装 kmscon + 字体，然后在 kmscon 内 re-exec 脚本
-  [[ -z "${IN_KMSCON:-}" ]] && setup-chinese-terminal
+  [[ -f /tmp/.kmscon_done ]] || setup-chinese-terminal
 
   # ==========================================================================
   # ⑤ 安装 dialog 工具 + 安全确认
@@ -346,7 +346,9 @@ font-name=DejaVu Sans Mono, WenQuanYi Micro Hei Mono
 font-size=14
 EOF
 
-  export IN_KMSCON=1 LANG=zh_CN.UTF-8
+  touch /tmp/.kmscon_done
+  echo "LANG=zh_CN.UTF-8" >/etc/locale.conf
+  export LANG=zh_CN.UTF-8
   exec kmscon -- /bin/bash "$0" "$@"
 }
 

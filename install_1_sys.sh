@@ -88,7 +88,7 @@ run() {
   # Linux 内核 TTY 不支持中文（512 字形硬限制）
   # 通过 kmscon（用户空间终端）绕过，支持完整 UTF-8 / CJK
   # 首次运行：安装 → 配置 → 自动 re-exec 进入 kmscon
-  if [[ ! -f /tmp/.kmscon_done ]]; then
+  if [[ -z "${IN_KMSCON:-}" ]]; then
     dialog --msgbox "Chinese terminal will be installed.\n\nAfter installation, the script will restart automatically." 10 50
     setup-chinese-terminal
     exec kmscon --no-reset-env --login -- /bin/bash "$0"
@@ -351,8 +351,8 @@ font-name=WenQuanYi Micro Hei Mono
 font-size=14
 EOF
 
-  touch /tmp/.kmscon_done
   echo "LANG=zh_CN.UTF-8" >/etc/locale.conf
+  export IN_KMSCON=1
   export LANG=zh_CN.UTF-8
 }
 

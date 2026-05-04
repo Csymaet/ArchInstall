@@ -498,10 +498,10 @@ dialog-what-disk-to-use() {
 dialog-what-swap-size() {
   local default_size="8"
   local file=${1:?}
-  dialog --no-cancel --inputbox "You need four partitions: Boot, Root and Swap \n\
+  dialog --no-cancel --inputbox "You need three partitions: Boot, Root and Swap \n\
         The boot will be 512M\n\
         The root will be the rest of the hard disk\n\
-        Enter partitionsize in gb for the Swap. \n\n\
+        Enter swap size in GB (numbers only, e.g. 4). \n\n\
         If you dont enter anything: \n\
             swap -> ${default_size}G \n\n" 20 60 2>"$file"
 

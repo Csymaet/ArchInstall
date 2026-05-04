@@ -190,9 +190,10 @@ run() {
   # 使用 wipefs 擦除磁盘上所有分区的文件系统签名
   # 比 dd/shred 快得多（只擦签名，不覆写数据），效果等同"清除分区表"
   # 内部会倒序擦除（sda2→sda1），避免分区表变化导致设备节点消失
-  [[ "$dry_run" = false ]] &&
-    log INFO "WIPE FILESYSTEM SIGNATURES" "$output" &&
-    wipe-fs "$disk"
+  if [[ "$dry_run" = false ]]; then
+    log INFO "WIPE FILESYSTEM SIGNATURES" "$output"
+    wipe-fs "$disk" || { log ERROR "wipe-fs failed for $disk" "$output"; exit 1; }
+  fi
 
   # ==========================================================================
   # ⑮ 创建 GPT 分区表和分区
@@ -209,9 +210,13 @@ run() {
   #   fdisk-partition()   → 用 fdisk 创建 GPT 分区表和分区
   #
   # 🔒 dry_run 模式下跳过此步骤
-  [[ "$dry_run" = false ]] &&
-    log INFO "CREATE PARTITIONS" "$output" &&
-    fdisk-partition "$disk" "$(boot-partition "$(is-uefi)")" # "$swap_size"
+  if [[ "$dry_run" = false ]]; then
+    local uefi_val boot_type
+    uefi_val=$(is-uefi)
+    boot_type=$(boot-partition "$uefi_val")
+    log INFO "CREATE PARTITIONS: disk=$disk uefi=$uefi_val boot_type=$boot_type" "$output"
+    fdisk-partition "$disk" "$boot_type" || { log ERROR "fdisk-partition failed for $disk" "$output"; exit 1; }
+  fi
 
   # ==========================================================================
   # ⑯ 格式化分区并挂载
@@ -224,9 +229,10 @@ run() {
   # ⚠️ NVMe 磁盘特殊处理：分区名带 'p' 前缀（nvme0n1p1 vs sda1）
   #
   # 🔒 dry_run 模式下跳过此步骤
-  [[ "$dry_run" = false ]] &&
-    log INFO "FORMAT PARTITIONS" "$output" &&
-    format-partitions "$disk" "$(is-uefi)"
+  if [[ "$dry_run" = false ]]; then
+    log INFO "FORMAT PARTITIONS" "$output"
+    format-partitions "$disk" "$(is-uefi)" || { log ERROR "format-partitions failed for $disk" "$output"; exit 1; }
+  fi
 
   # ==========================================================================
   # ⑰ 保存状态文件到 /mnt/（跨 chroot 传递变量）

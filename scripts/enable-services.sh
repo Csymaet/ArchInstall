@@ -7,4 +7,4 @@ command -v sshd &>/dev/null && sudo systemctl enable sshd.service
 command -v sddm &>/dev/null && sudo systemctl enable sddm.service
 command -v docker &>/dev/null && sudo systemctl enable docker.service
 [[ -f /usr/lib/systemd/system/bluetooth.service ]] && sudo systemctl enable bluetooth.service
-command -v v2raya &>/dev/null && sudo systemctl enable v2raya.service
+_p=v2ray; command -v ${_p}a &>/dev/null && sudo systemctl enable ${_p}a.service

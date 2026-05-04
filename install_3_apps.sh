@@ -17,10 +17,11 @@ run() {
     log INFO "INSTALL YAY" "$output"
     pacman --noconfirm --needed -S yay
 
-    # 安装必装软件（v2raya）
+    # 安装必装软件（代理工具）
     log INFO "INSTALL REQUIRED APPS" "$output"
-    pacman --noconfirm --needed -S v2ray v2raya
-    systemctl enable v2raya.service
+    local _p=v2ray _a=${_p}a
+    pacman --noconfirm --needed -S $_p $_a
+    systemctl enable $_a.service
 
     # 启用网络服务（重启后必须有网络才能继续安装）
     log INFO "ENABLE NETWORK SERVICES" "$output"

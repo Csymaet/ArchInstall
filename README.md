@@ -34,7 +34,7 @@
 
 **`install_3_apps.sh`**（chroot 环境，root 身份）：
 1. 添加 archlinuxcn 仓库
-2. 安装 yay + v2raya（必装软件）
+2. 安装 yay + 代理工具（必装软件）
 3. 启用网络服务（iwd、dhcpcd）
 4. 设置 sudo 权限
 5. 保存用户选择的软件列表到用户主目录
@@ -67,7 +67,6 @@ files/                      纯配置文件
   i3/config                 i3 窗口管理器配置
   sddm.conf                 SDDM 登录管理器配置
   sudoers                   sudo 权限配置
-  v2raya/                   v2rayA 代理配置
 
 scripts/                    可执行脚本（按需修改）
   enable-services.sh        启用系统服务

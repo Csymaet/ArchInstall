@@ -20,10 +20,6 @@ run() {
     # 安装必装软件（v2raya）
     log INFO "INSTALL REQUIRED APPS" "$output"
     pacman --noconfirm --needed -S v2ray v2raya
-    REDACTED
-    REDACTED
-    REDACTED
-    REDACTED
     systemctl enable v2raya.service
 
     # 启用网络服务（重启后必须有网络才能继续安装）

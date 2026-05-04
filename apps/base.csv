@@ -5,4 +5,5 @@ linux-firmware,硬件固件（驱动硬件正常工作所需的微代码）,必�
 man-db,手册页,默认
 grub,引导加载器（BIOS/UEFI 加载操作系统的入口）,必装
 efibootmgr,EFI 启动项注册（UEFI 模式下 grub-install 依赖它）,必装
-archlinuxcn-keyring,CN 源密钥环,默认
+archlinuxcn-keyring,CN 源签名密钥（安装 yay 的前置依赖）,必装
+yay,AUR 包管理器（安装第三方软件必需）,必装

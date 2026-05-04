@@ -186,5 +186,3 @@ bar {
 }
 
 exec fcitx5
-exec yakuake
-exec VBoxClient-all

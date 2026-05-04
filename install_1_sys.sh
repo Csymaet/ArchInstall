@@ -406,16 +406,28 @@ download-apps-csv() {
 # ----------------------------------------------------------------------------
 # dialog-choose-apps — 软件选择对话框
 # ----------------------------------------------------------------------------
-# 从 CSV 文件中读取软件列表，生成 --checklist：
-#   必装 → 不显示（第一阶段 pacstrap 已安装）
-#   默认 → 预选中（on）
-#   可选 → 未选中（off）
-# 用户用空格勾选/取消，回车确认
-# 结果（逗号分隔的包名列表）写入 $file
+# 分两步：
+#   1. --msgbox 展示必装软件列表（仅查看）
+#   2. --checklist 让用户选择默认/可选软件
+# 结果（空格分隔的包名列表）写入 $file
 dialog-choose-apps() {
   local file=${1:?}
   local -r apps_dir=${2:?}
 
+  # 第一步：展示必装软件
+  local required_list=""
+  for csv_file in "$apps_dir"/*.csv; do
+    while IFS=, read -r pkg desc priority; do
+      [[ "$priority" == "必装" ]] && required_list="$required_list\n  * $pkg — $desc"
+    done <"$csv_file"
+  done
+
+  if [[ -n "$required_list" ]]; then
+    dialog --title "必装软件（自动安装）" \
+      --msgbox "以下软件将自动安装，无需选择：$required_list" 20 60
+  fi
+
+  # 第二步：选择默认/可选软件
   local checklist=()
   for csv_file in "$apps_dir"/*.csv; do
     while IFS=, read -r pkg desc priority; do

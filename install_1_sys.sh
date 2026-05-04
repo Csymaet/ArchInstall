@@ -21,7 +21,7 @@
 #   -o pipefail  管道中任一命令失败则整个管道失败
 set -euo pipefail
 
-trap 'echo ""; echo "❌ 脚本在第 $LINENO 行出错，退出码: $?"; echo "按回车键退出..."; read -r; kill "$PPID" 2>/dev/null; exit 1' ERR
+trap 'echo "❌ 脚本在第 $LINENO 行出错，退出码: $?" > /tmp/install_crash.log' ERR
 
 # ----------------------------------------------------------------------------
 # 📡 安装脚本的远程仓库地址
@@ -62,6 +62,13 @@ run() {
   done
 
   log INFO "DRY RUN? $dry_run" "$output"
+
+  if [[ -f /tmp/install_crash.log ]]; then
+    dialog --title "上次运行出错" --msgbox "$(cat /tmp/install_crash.log)" 10 50
+    rm /tmp/install_crash.log
+    kill "$PPID" 2>/dev/null
+    exit 1
+  fi
 
   # ==========================================================================
   # ② 配置 pacman 镜像源

@@ -4,7 +4,7 @@
 
 **⚠️ 警告**：本脚本仅供参考，请勿直接在你的系统上运行。如果你想试用（建议使用虚拟机），需要：
 
-1. `curl` 下载第一个脚本 `install_1_sys.sh`（`curl -LO https://gitee.com/unityw/ArchInstall/raw/master/install_1_sys.sh && sh install_1_sys.sh`）
+1. `curl` 下载第一个脚本 `install_1_sys.sh`（`curl -LfO https://gitee.com/unityw/ArchInstall/raw/master/install_1_sys.sh && sh install_1_sys.sh`）
 2. 根据需要修改文件中的 `url-installer` 和 `repo-installer` 函数
 3. 运行
 
@@ -16,12 +16,13 @@
 
 **`install_1_sys.sh`**（Live USB 环境）：
 1. 配置国内镜像源、同步时钟
-2. 交互式输入：主机名、root 密码、用户密码、Swap 大小
-3. 选择目标磁盘
-4. 从远程仓库下载 CSV，选择要安装的软件（dialog checklist）
-5. 擦除磁盘、创建分区（Boot 512M + Root 占满）
-6. pacstrap 安装最小基础系统
-7. arch-chroot 进入新系统执行第二阶段
+2. 安装 kmscon + 中文字体（自动切换到中文终端）
+3. 交互式输入：root 密码、主机名、用户密码、Swap 大小
+4. 选择目标磁盘
+5. 从远程仓库下载 CSV，选择要安装的软件（dialog checklist）
+6. 擦除磁盘、创建 GPT 分区（Boot 512M + Root 占满，使用 sfdisk）
+7. pacstrap 安装最小基础系统
+8. arch-chroot 进入新系统执行第二阶段
 
 **`install_2_chroot.sh`**（chroot 环境，root 身份）：
 1. 创建 Swap 文件

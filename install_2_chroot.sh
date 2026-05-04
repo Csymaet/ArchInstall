@@ -13,10 +13,14 @@ run() {
     hostname=$(cat /var_hostname)
     url_installer=$(cat /var_url_installer)
     dry_run=$(cat /var_dry_run)
+    swap_size=$(cat /var_swap_size)
 
     ## 安装dialog
     log INFO "INSTALL DIALOG" "$output"
 
+    ## 创建 swap 文件
+    log INFO "CREATE SWAP FILE: ${swap_size}G" "$output"
+    create-swap "$swap_size"
 
     ## 安装并设置grub
     log INFO "INSTALL GRUB ON $hd WITH UEFI $uefi" "$output"
@@ -67,6 +71,16 @@ log() {
 write-hostname() {
     local -r hostname=${1:?}
     echo "$hostname" > /etc/hostname
+}
+
+create-swap() {
+    local -r size=${1:?}
+
+    fallocate -l "${size}G" /swapfile
+    chmod 600 /swapfile
+    mkswap /swapfile
+    swapon /swapfile
+    echo '/swapfile none swap sw 0 0' >> /etc/fstab
 }
 
 

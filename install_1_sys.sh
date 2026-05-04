@@ -1,233 +1,504 @@
 #!/bin/bash
 
-# e - script stops on error
-# u - error if undefined variable
-# o pipefail - script fails if command piped fails
+# ============================================================================
+# Arch Linux 自动安装脚本 — 第一阶段（在 Live USB 环境中运行）
+# ============================================================================
+# 本脚本在 Arch Live USB 启动后执行，负责：
+#   1. 配置镜像源和时钟
+#   2. 交互式选择磁盘、设置主机名
+#   3. 分区、格式化、挂载
+#   4. pacstrap 安装基础系统
+#   5. arch-chroot 进入新系统执行第二阶段脚本
+#
+# 用法：bash install_1_sys.sh [-d true|false] [-o /path/to/log]
+#   -d  是否干跑模式（只打印日志，不执行破坏性操作），默认 false
+#   -o  日志输出文件路径，默认 /dev/tty2（第二个虚拟终端）
+# ============================================================================
+
+# 安全选项：
+#   -e  遇到错误立即退出（防止在错误状态下继续执行）
+#   -u  使用未定义变量时报错（防止拼写错误）
+#   -o pipefail  管道中任一命令失败则整个管道失败
 set -euo pipefail
 
-# YOU NEED TO MODIFY YOUR INSTALL URL
+# ----------------------------------------------------------------------------
+# 📡 安装脚本的远程仓库地址
+# ----------------------------------------------------------------------------
+# ⚠️ 如果你是 Fork 的仓库，必须修改这里的 URL 为你自己的地址
+# 第二阶段脚本（install_2_chroot.sh）会从这个地址下载
 url-installer() {
-    echo "https://gitee.com/unityw/ArchInstall/raw/master"
+  echo "https://gitee.com/unityw/ArchInstall/raw/master"
 }
 
+# ============================================================================
+# 🚀 主流程入口
+# ============================================================================
 run() {
-    ## 有两个参数，分别是-o和-d
-    local dry_run=${dry_run:-false}
-    local output=${output:-/dev/tty2}
+  # ==========================================================================
+  # ① 解析命令行参数
+  # ==========================================================================
+  # -d  干跑模式开关（true = 只打印日志，跳过所有破坏性操作）
+  # -o  日志输出目标（默认 /dev/tty2，即第二个虚拟终端）
+  #     用户在 tty1 操作，日志输出到 tty2，互不干扰
+  #     可通过 Ctrl+Alt+F2 切换到 tty2 查看日志
+  local dry_run=${dry_run:-false}
+  local output=${output:-/dev/tty2}
 
-    while getopts d:o: option
-    do
-        case "${option}"
-            in
-            d) dry_run=${OPTARG};;
-            o) output=${OPTARG};;
-            *);;
-        esac
-    done
+  # getopts 解析选项：d: 和 o: 后面的冒号表示该选项需要一个参数
+  # OPTARG 是 getopts 内置变量，保存当前选项的参数值
+  while getopts d:o: option; do
+    case "${option}" in
+    d) dry_run=${OPTARG} ;;  # 例如：-d true
+    o) output=${OPTARG} ;;   # 例如：-o /tmp/install.log
+    *) ;;                    # 忽略未知选项
+    esac
+  done
 
-    log INFO "DRY RUN? $dry_run" "$output"
+  log INFO "DRY RUN? $dry_run" "$output"
 
-    ## 选择镜像源
-    log INFO "SELECT MIRROR SOURCE" "$output"
-    select-mirror-source
+  # ==========================================================================
+  # ② 配置 pacman 镜像源
+  # ==========================================================================
+  # 在 /etc/pacman.d/mirrorlist 头部插入国内镜像源（中科大 + 清华）
+  # 插入头部 = 最高优先级，pacman 会优先使用这两个源下载包
+  log INFO "SELECT MIRROR SOURCE" "$output"
+  select-mirror-source
 
-    ## 更新系统时钟
-    log INFO "SET TIME" "$output"
-    set-timedate
+  # ==========================================================================
+  # ③ 同步系统时钟
+  # ==========================================================================
+  # 启用 NTP 网络时间同步，确保系统时钟准确
+  # ⚠️ 必须准确：pacman 下载包时需要验证 TLS 证书，时钟偏差会导致失败
+  log INFO "SET TIME" "$output"
+  set-timedate
 
-    # 安装"dialog"
-    install-dialog
-    dialog-are-you-sure
+  # ==========================================================================
+  # ④ 安装 dialog 工具 + 安全确认
+  # ==========================================================================
+  # Arch Live USB 默认不带 dialog（TUI 对话框工具）
+  # 但后续所有用户交互（选磁盘、确认等）都依赖它，所以必须先装
+  install-dialog
 
-    ## 输入主机名称
-    local hostname
-    # dialog-name-of-computer hn
-    # hostname=$(cat hn) && rm hn
-    hostname=eli
-    log INFO "HOSTNAME: $hostname" "$output"
+  # 弹出确认对话框，默认选中"否"（--defaultno）
+  # 提示用户此操作会销毁磁盘数据，选"否"则直接 exit 退出脚本
+  # 🛡️ 这是安全阀门，防止误操作
+  dialog-are-you-sure
 
-    ## 选择磁盘
-    local disk
-    dialog-what-disk-to-use hd
-    disk=$(cat hd) && rm hd
-    log INFO "DISK CHOSEN: $disk" "$output"
+  # ==========================================================================
+  # ⑤ 设置主机名
+  # ==========================================================================
+  # 弹出输入框让用户输入主机名，结果写入临时文件 hn
+  # --no-cancel 不允许取消（必须有主机名）
+  # 读取后立即删除临时文件
+  local hostname
+  dialog-name-of-computer hn
+  hostname=$(cat hn) && rm hn
+  log INFO "HOSTNAME: $hostname" "$output"
 
-    ## swap分区大小
-    # local swap_size
-    # dialog-what-swap-size swaps
-    # swap_size=$(cat swaps) && rm swaps
-    # log INFO "SWAP SIZE: $swap_size" "$output"
+  # ==========================================================================
+  # ⑥ 选择目标磁盘
+  # ==========================================================================
+  # 用 dialog --radiolist 列出所有可用磁盘，用户用空格选择、回车确认
+  # 选择结果写入临时文件 hd，读取后立即删除（保持干净）
+  local disk
+  dialog-what-disk-to-use hd
+  disk=$(cat hd) && rm hd
+  log INFO "DISK CHOSEN: $disk" "$output"
 
-    ## 选择格盘方式
-    # local wiper
-    # dialog-how-wipe-disk "$disk" dfile
-    # wiper=$(cat dfile) && rm dfile
-    # log INFO "WIPER CHOICE: $wiper" "$output"
+  # ==========================================================================
+  # ⑦ Swap 文件大小
+  # ==========================================================================
+  # 弹框让用户输入 swap 文件大小（GB），默认 8G
+  local swap_size
+  dialog-what-swap-size swaps
+  swap_size=$(cat swaps) && rm swaps
+  log INFO "SWAP SIZE: ${swap_size}G" "$output"
 
-    ## 使用选择的方式格盘
-    # [[ "$dry_run" = false ]] \
-    #     && log INFO "ERASE DISK" "$output" \
-    #     && erase-disk "$wiper" "$disk"
-    
-    ## 擦除文件系统
-    wipe-fs "$disk"
+  # ==========================================================================
+  # ⑧ 选择格盘方式（已禁用，当前使用更快的 wipefs 替代）
+  # ==========================================================================
+  # 原始设计提供三种选择：
+  #   1) dd 全盘覆写零（慢但彻底）
+  #   2) shred 安全擦除（更慢更安全）
+  #   3) 跳过（磁盘已空）
+  # local wiper
+  # dialog-how-wipe-disk "$disk" dfile
+  # wiper=$(cat dfile) && rm dfile
+  # log INFO "WIPER CHOICE: $wiper" "$output"
 
-    ## 创建分区
-    [[ "$dry_run" = false ]] \
-        && log INFO "CREATE PARTITIONS" "$output" \
-        && fdisk-partition "$disk" "$(boot-partition "$(is-uefi)")" # "$swap_size"
+  # ==========================================================================
+  # ⑨ 使用 dd/shred 格盘（已禁用）
+  # ==========================================================================
+  # [[ "$dry_run" = false ]] \
+  #     && log INFO "ERASE DISK" "$output" \
+  #     && erase-disk "$wiper" "$disk"
 
-    ## 格式化分区
-    [[ "$dry_run" = false ]] \
-        && log INFO "FORMAT PARTITIONS" "$output" \
-        && format-partitions "$disk" "$(is-uefi)"
+  # ==========================================================================
+  # ⑩ 擦除文件系统签名
+  # ==========================================================================
+  # 使用 wipefs 擦除磁盘上所有分区的文件系统签名
+  # 比 dd/shred 快得多（只擦签名，不覆写数据），效果等同"清除分区表"
+  # 内部会倒序擦除（sda3→sda2→sda1），避免分区表变化导致设备节点消失
+  wipe-fs "$disk"
 
-    ## 创建临时文件
-    log INFO "CREATE VAR FILES" "$output"
-    echo "$(is-uefi)" > /mnt/var_uefi
-    echo "$disk" > /mnt/var_disk
-    echo "$hostname" > /mnt/var_hostname
-    echo "$output" > /mnt/var_output
-    echo "$dry_run" > /mnt/var_dry_run
-    url-installer > /mnt/var_url_installer
+  # ==========================================================================
+  # ⑪ 创建 GPT 分区表和分区
+  # ==========================================================================
+  # 分区方案（共 3 个分区，无 Swap）：
+  #   分区1：2G    — Boot 分区（EFI System Partition 或 BIOS Boot Partition）
+  #   分区2：100G  — Root 根分区
+  #   分区3：剩余  — Home 分区
+  #
+  # 调用链：
+  #   is-uefi()           → 检测是否 UEFI 启动，返回 1(UEFI) 或 0(BIOS)
+  #   boot-partition()    → 根据启动模式返回 fdisk 分区类型 ID
+  #                          UEFI → 1 (EFI System Partition)
+  #                          BIOS → 4 (BIOS Boot Partition)
+  #   fdisk-partition()   → 用 fdisk 创建 GPT 分区表和分区
+  #
+  # 🔒 dry_run 模式下跳过此步骤
+  [[ "$dry_run" = false ]] &&
+    log INFO "CREATE PARTITIONS" "$output" &&
+    fdisk-partition "$disk" "$(boot-partition "$(is-uefi)")" # "$swap_size"
 
-    ## 安装系统
-    [[ "$dry_run" = false ]] \
-        && log INFO "BEGIN INSTALL ARCH LINUX" "$output" \
-        && install-arch-linux
+  # ==========================================================================
+  # ⑫ 格式化分区并挂载
+  # ==========================================================================
+  # 根分区和 Home 分区：格式化为 ext4
+  # Boot 分区：
+  #   UEFI 模式 → 格式化为 FAT32（EFI 标准要求），挂载到 /mnt/boot/efi
+  #   BIOS 模式 → 不需要单独格式化（由 GRUB 直接处理）
+  #
+  # ⚠️ NVMe 磁盘特殊处理：分区名带 'p' 前缀（nvme0n1p1 vs sda1）
+  #
+  # 🔒 dry_run 模式下跳过此步骤
+  [[ "$dry_run" = false ]] &&
+    log INFO "FORMAT PARTITIONS" "$output" &&
+    format-partitions "$disk" "$(is-uefi)"
 
-    ## 进入下一步，进入新系统中执行"install-chroot"
-    [[ "$dry_run" = false ]] \
-        && log INFO "BEGIN CHROOT SCRIPT" "$output" \
-        && install-chroot "$(url-installer)"
+  # ==========================================================================
+  # ⑬ 保存状态文件到 /mnt/（跨 chroot 传递变量）
+  # ==========================================================================
+  # arch-chroot 进入新系统后，当前 shell 的所有变量都会丢失
+  # 所以必须把关键变量写入文件，第二阶段脚本从文件中读取
+  #
+  # 保存的变量：
+  #   var_uefi          — 启动模式（0=BIOS, 1=UEFI）
+  #   var_disk          — 目标磁盘设备路径（如 /dev/nvme0n1）
+  #   var_hostname      — 主机名
+  #   var_output        — 日志输出目标
+  #   var_dry_run       — 干跑模式开关
+  #   var_url_installer — 远程脚本仓库地址
+  log INFO "CREATE VAR FILES" "$output"
+  echo "$(is-uefi)" >/mnt/var_uefi
+  echo "$disk" >/mnt/var_disk
+  echo "$hostname" >/mnt/var_hostname
+  echo "$output" >/mnt/var_output
+  echo "$dry_run" >/mnt/var_dry_run
+  url-installer >/mnt/var_url_installer
+  echo "$swap_size" >/mnt/var_swap_size
 
-    clean
-    end-of-install
+  # ==========================================================================
+  # ⑭ 使用 pacstrap 安装基础系统
+  # ==========================================================================
+  # pacstrap 是 Arch 专用的系统安装工具，会在 /mnt 下安装完整的根文件系统
+  # 安装的包包括：
+  #   🏗️ 基础系统：base linux base-devel linux-firmware man-db
+  #   🔧 引导加载：grub efibootmgr
+  #   🌐 网络工具：iwd（WiFi）dhcpcd（有线）openssh（SSH服务）
+  #   💻 开发工具：git neovim
+  #   🔊 音频：pulseaudio pulseaudio-bluetooth
+  #   📶 蓝牙：bluez-utils bluez
+  #   🇨🇳 中文支持：wqy-zenhei（字体）fcitx5-im fcitx5-chinese-addons（输入法）
+  #   🖥️ 窗口管理：i3 dmenu xorg-server tmux
+  #   📟 终端：konsole yakuake
+  #   🌍 浏览器：firefox
+  #   📂 文件管理：tree ranger imlib2
+  #   🛠️ 其他：flameshot（截图）termdown（倒计时）docker ntfs-3g
+  #
+  # 安装完成后用 genfstab 生成 /etc/fstab（文件系统挂载表）
+  # 使用 -U 选项以 UUID 标识分区（比设备名更稳定，不会因插拔顺序变化）
+  #
+  # 🔒 dry_run 模式下跳过此步骤
+  [[ "$dry_run" = false ]] &&
+    log INFO "BEGIN INSTALL ARCH LINUX" "$output" &&
+    install-arch-linux
+
+  # ==========================================================================
+  # ⑮ 执行第二阶段脚本（chroot 进入新系统）
+  # ==========================================================================
+  # 两阶段安装模式：
+  #   第一阶段（当前脚本）— 在 Live USB 环境中运行，负责分区和安装包
+  #   第二阶段（install_2_chroot.sh）— 在新系统环境中运行，负责：
+  #     - 设置时区、locale
+  #     - 配置网络
+  #     - 安装 GRUB 引导
+  #     - 创建用户
+  #
+  # 流程：
+  #   1. curl 从远程仓库下载 install_2_chroot.sh 到 /mnt/
+  #   2. arch-chroot /mnt 切换根目录到新系统
+  #   3. 在新系统环境中执行 install_2_chroot.sh
+  #
+  # 💡 远程下载 = 脚本热更新，修改仓库后无需重新制作 ISO
+  #
+  # 🔒 dry_run 模式下跳过此步骤
+  [[ "$dry_run" = false ]] &&
+    log INFO "BEGIN CHROOT SCRIPT" "$output" &&
+    install-chroot "$(url-installer)"
+
+  # ==========================================================================
+  # ⑯ 清理与完成
+  # ==========================================================================
+  # 删除之前保存的临时变量文件（var_uefi 等）
+  clean
+
+  # 弹出最终对话框：
+  #   告知安装完成，询问是否重启
+  #   选"是" → reboot 重启进入新系统
+  #   选"否" → 清屏，留在 Live USB 环境
+  end-of-install
 }
 
+# ============================================================================
+# 📝 工具函数
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# log — 带时间戳的日志函数
+# ----------------------------------------------------------------------------
+# 参数：
+#   $1  日志级别（INFO / WARN / ERROR）
+#   $2  日志消息
+#   $3  输出目标（文件路径，如 /dev/tty2 或 /tmp/install.log）
+# 输出格式：2025-01-01 12:00:00 [INFO] 消息内容
+# 注意：使用 >> 追加写入，不会覆盖已有日志
 log() {
-    local -r level=${1:?}
-    local -r message=${2:?}
-    local -r output=${3:?}
-    local -r timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+  local -r level=${1:?}      # -r 表示只读，:? 表示必填
+  local -r message=${2:?}
+  local -r output=${3:?}
+  local -r timestamp=$(date +"%Y-%m-%d %H:%M:%S")
 
-    echo -e "${timestamp} [${level}] ${message}" >>"$output"
+  echo -e "${timestamp} [${level}] ${message}" >>"$output"
 }
 
+# ----------------------------------------------------------------------------
+# install-dialog — 安装 dialog（TUI 对话框工具）
+# ----------------------------------------------------------------------------
+# Arch Live USB 默认不带 dialog，但后续所有交互都依赖它
+# -Sy        同步包数据库（从镜像源获取最新的包列表）
+# --noconfirm 跳过确认提示
+# -S dialog  安装 dialog 包
 install-dialog() {
-    pacman -Sy
-    pacman --noconfirm -S dialog
+  pacman -Sy
+  pacman --noconfirm -S dialog
 }
 
+# ----------------------------------------------------------------------------
+# dialog-are-you-sure — 安全确认对话框
+# ----------------------------------------------------------------------------
+# --defaultno  默认光标在"否"上（防止用户习惯性按回车）
+# 选"否" → exit 退出整个脚本
+# 🛡️ 这是最后的安全阀门，防止用户在不知情的情况下格式化磁盘
 dialog-are-you-sure() {
-    dialog --defaultno \
-        --title "Are you sure?" \
-        --yesno "This is my personnal arch linux install. \n\n\
+  dialog --defaultno \
+    --title "Are you sure?" \
+    --yesno "This is my personnal arch linux install. \n\n\
         It will just DESTROY EVERYTHING on the hard disk of your choice. \n\n\
         Don't say YES if you are not sure about what you're doing! \n\n\
-        Are you sure?"  15 60 || exit
+        Are you sure?" 15 60 || exit
 }
 
+# ----------------------------------------------------------------------------
+# dialog-name-of-computer — 输入主机名的对话框（当前未使用）
+# ----------------------------------------------------------------------------
+# --no-cancel 不显示取消按钮
+# --inputbox  文本输入框
+# 2>"$file"   将用户输入重定向到文件（dialog 的标准输出是终端，stderr 是结果）
 dialog-name-of-computer() {
-    local file=${1:?}
-    dialog --no-cancel --inputbox "Enter a name for your computer." 10 60 2> "$file"
+  local file=${1:?}
+  dialog --no-cancel --inputbox "Enter a name for your computer." 10 60 2>"$file"
 }
 
+# ----------------------------------------------------------------------------
+# is-uefi — 检测当前启动模式
+# ----------------------------------------------------------------------------
+# 返回值：
+#   1 = UEFI 模式（/sys/firmware/efi/efivars 目录存在）
+#   0 = BIOS/Legacy 模式（该目录不存在）
+#
+# 💡 这是 Arch Wiki 推荐的检测方法：
+#   UEFI 固件会在 /sys/firmware/efi/ 下暴露 EFI 变量
+#   BIOS 模式下这个目录根本不存在
 is-uefi() {
-    local uefi=0
-    ls /sys/firmware/efi/efivars &> /dev/null && uefi=1
+  local uefi=0
+  ls /sys/firmware/efi/efivars &>/dev/null && uefi=1
 
-    echo "$uefi"
+  echo "$uefi"
 }
 
+# ----------------------------------------------------------------------------
+# dialog-what-disk-to-use — 选择目标磁盘的对话框
+# ----------------------------------------------------------------------------
+# 流程：
+#   1. lsblk -d 列出所有块设备（不含分区）
+#   2. awk 提取设备名和大小，拼接为 dialog 需要的格式："/dev/sda 500G on"
+#   3. grep 过滤出真实磁盘（排除 loop、rom 等虚拟设备）
+#   4. dialog --radiolist 生成单选列表（空格选择，回车确认）
+#   5. 选择结果写入文件
+#
+# 支持的磁盘类型：
+#   sd    — SATA/SCSI 磁盘（如 /dev/sda）
+#   hd    — IDE 磁盘（老式）
+#   vd    — virtio 虚拟磁盘（虚拟机）
+#   nvme  — NVMe SSD（如 /dev/nvme0n1）
+#   mmcblk — eMMC/SD 卡（如 /dev/mmcblk0）
 dialog-what-disk-to-use() {
-    local file=${1:?}
+  # ${1:?} 取第一个参数，若为空则报错退出
+  local file=${1:?}
 
-    devices_list=($(lsblk -d | awk '{print "/dev/" $1 " " $4 " on"}' | grep -E 'sd|hd|vd|nvme|mmcblk'))
-    dialog --title "Choose your hard drive" --no-cancel --radiolist \
-        "Where do you want to install your new system?\n\n\
+  # lsblk -d 列出所有块设备（不含分区），awk 拼接为 "设备路径 大小 on" 格式，
+  # grep 过滤出真实磁盘（sd/hd/vd/nvme/mmcblk），最终转为 Bash 数组
+  devices_list=($(lsblk -d | awk '{print "/dev/" $1 " " $4 " on"}' | grep -E 'sd|hd|vd|nvme|mmcblk'))
+
+  # --radiolist 单选列表（空格选择，回车确认），--no-cancel 必须选一个
+  # 15 60 4 = 高度、宽度、最多显示项数；2>"$file" 将选择结果写入文件（dialog 结果走 stderr）
+  dialog --title "Choose your hard drive" --no-cancel --radiolist \
+    "Where do you want to install your new system?\n\n\
         Select with SPACE, valid with ENTER.\n\n\
-        WARNING: Everything will be DESTROYED on the hard disk!" 15 60 4 "${devices_list[@]}" 2> "$file"
+        WARNING: Everything will be DESTROYED on the hard disk!" 15 60 4 "${devices_list[@]}" 2>"$file"
 }
 
+# ----------------------------------------------------------------------------
+# dialog-what-swap-size — 输入 Swap 分区大小的对话框（当前未使用）
+# ----------------------------------------------------------------------------
+# 默认 8G，如果用户输入的不是纯数字则使用默认值
+# 正则 ^[0-9]+$ 匹配一个或多个数字
 dialog-what-swap-size() {
-    local default_size="8"
-    local file=${1:?}
-    dialog --no-cancel --inputbox "You need four partitions: Boot, Root and Swap \n\
+  local default_size="8"
+  local file=${1:?}
+  dialog --no-cancel --inputbox "You need four partitions: Boot, Root and Swap \n\
         The boot will be 512M\n\
         The root will be the rest of the hard disk\n\
         Enter partitionsize in gb for the Swap. \n\n\
         If you dont enter anything: \n\
-            swap -> ${default_size}G \n\n" 20 60 2> "$file"
+            swap -> ${default_size}G \n\n" 20 60 2>"$file"
 
-    local size=$(cat "$file")
-    [[ $size =~ ^[0-9]+$ ]] || size=$default_size
+  local size=$(cat "$file")
+  [[ $size =~ ^[0-9]+$ ]] || size=$default_size
 
-    echo "$size" > "$file"
+  echo "$size" >"$file"
 }
 
+# ----------------------------------------------------------------------------
+# set-timedate — 启用 NTP 时间同步
+# ----------------------------------------------------------------------------
+# 确保系统时钟准确，pacman 需要正确的时钟来验证 TLS 证书
 set-timedate() {
-    timedatectl set-ntp true
+  timedatectl set-ntp true
 }
 
+# ----------------------------------------------------------------------------
+# dialog-how-wipe-disk — 选择磁盘擦除方式的对话框（当前未使用）
+# ----------------------------------------------------------------------------
+# 三种方式：
+#   1) dd      — 用零覆写整个磁盘（慢，约 1M 块写入）
+#   2) shred   — 多次随机覆写，更安全但更慢
+#   3) 跳过    — 磁盘已空，无需擦除
 dialog-how-wipe-disk() {
-    local -r hd=${1:?}
-    local -r file=${2:?}
+  local -r hd=${1:?}
+  local -r file=${2:?}
 
-    dialog --no-cancel \
-        --title "!!! DELETE EVERYTHING !!!" \
-        --menu "Choose the way to destroy everything on your hard disk ($hd)" 15 60 4 \
-        1 "Use dd (wipe all disk)" \
-        2 "Use schred (slow & secure)" \
-        3 "No need - my hard disk is empty" 2> "$file"
+  dialog --no-cancel \
+    --title "!!! DELETE EVERYTHING !!!" \
+    --menu "Choose the way to destroy everything on your hard disk ($hd)" 15 60 4 \
+    1 "Use dd (wipe all disk)" \
+    2 "Use schred (slow & secure)" \
+    3 "No need - my hard disk is empty" 2>"$file"
 }
 
+# ----------------------------------------------------------------------------
+# erase-disk — 按选择方式擦除磁盘（当前未使用）
+# ----------------------------------------------------------------------------
+# set +e 临时关闭错误退出，因为 dd/shred 可能因磁盘大小问题返回非零
+# 用 dialog --progressbox 显示进度
 erase-disk() {
-    local -r choice=${1:?}
-    local -r hd=${2:?}
+  local -r choice=${1:?}
+  local -r hd=${2:?}
 
-    set +e
-    case $choice in
-        1) dd if=/dev/zero of="$hd" bs=1M status=progress 2>&1 | dialog --title "Formatting $hd..." --progressbox --stdout 20 65;;
-        2) shred -v "$hd" | dialog --title "Formatting $hd..." --progressbox --stdout 20 60;;
-        3) ;;
-    esac
-    set -e
+  set +e
+  case $choice in
+  1) dd if=/dev/zero of="$hd" bs=1M status=progress 2>&1 | dialog --title "Formatting $hd..." --progressbox --stdout 20 65 ;;
+  2) shred -v "$hd" | dialog --title "Formatting $hd..." --progressbox --stdout 20 60 ;;
+  3) ;;
+  esac
+  set -e
 }
 
+# ----------------------------------------------------------------------------
+# wipe-fs — 擦除磁盘上所有分区的文件系统签名
+# ----------------------------------------------------------------------------
+# wipefs -a  擦除所有签名（UUID、标签、文件系统类型等）
+# wipefs -f  强制操作，不提示确认
+#
+# lsblk -ln -o NAME  以裸格式（无表头）列出所有分区名
+# sort -r  倒序排列（sda3→sda2→sda1），确保从高编号分区开始擦除
+# 这样可以避免擦除低编号分区后分区表变化导致高编号设备节点消失
 wipe-fs() {
-    local -r hd=${1:?}
+  local -r hd=${1:?}
 
-    local parts=$(lsblk $hd -ln -o NAME | sort -r)
-    for part in $parts
-    do
-        wipefs -a -f /dev/$part
-    done
+  local parts=$(lsblk $hd -ln -o NAME | sort -r)
+  for part in $parts; do
+    wipefs -a -f /dev/$part
+  done
 }
 
+# ----------------------------------------------------------------------------
+# boot-partition — 根据 UEFI/BIOS 模式返回 fdisk 分区类型 ID
+# ----------------------------------------------------------------------------
+# 返回值：
+#   UEFI 模式 → 1 (EFI System Partition，GPT 类型代码)
+#   BIOS 模式 → 4 (BIOS Boot Partition，GRUB 在 GPT 磁盘上需要此类型)
+#
+# 💡 fdisk 中的 't' 命令用于更改分区类型，后面的数字就是类型代码
 boot-partition() {
-    local -r uefi=${1:?}
-    local boot_partition_type=1
-    [[ "$uefi" == 0 ]] && local boot_partition_type=4
+  local -r uefi=${1:?}
+  local boot_partition_type=1
+  [[ "$uefi" == 0 ]] && local boot_partition_type=4
 
-    echo "$boot_partition_type"
+  echo "$boot_partition_type"
 }
 
+# ----------------------------------------------------------------------------
+# fdisk-partition — 使用 fdisk 创建 GPT 分区表和分区
+# ----------------------------------------------------------------------------
+# 流程（通过 heredoc <<EOF 传入 fdisk 的交互式命令序列）：
+#
+#   g              创建新的空 GPT 分区表（⚠️ 会清除原有分区表）
+#   n ↵ ↵ +2G     新建分区1（默认起始扇区，大小 2G）— Boot 分区
+#   t <type_id>    设置分区1的类型（UEFI=1, BIOS=4）
+#   n ↵ ↵ +100G   新建分区2（默认起始扇区，大小 100G）— Root 分区
+#   n ↵ ↵ ↵       新建分区3（默认起始扇区，占满剩余空间）— Home 分区
+#   w              写入分区表到磁盘并退出
+#
+# 空行 = 按回车（接受默认值，即使用第一个可用的扇区）
+#
+# partprobe 通知内核重新读取分区表，确保 fdisk 的更改立即生效
 fdisk-partition() {
-local -r hd=${1:?}
-local -r boot_partition_type=${2:?}
-# local -r swap_size=${3:?}
+  local -r hd=${1:?}
+  local -r boot_partition_type=${2:?}
+  # local -r swap_size=${3:?}
 
-partprobe "$hd"
+  partprobe "$hd"
 
-#g - create non empty GPT partition table
-#n - create new partition
-#p - primary partition
-#e - extended partition
-#w - write the table to disk and exit
-#空行表示回车
-#使用fdisk分区
-fdisk "$hd" <<EOF
+  #g - create non empty GPT partition table
+  #n - create new partition
+  #p - primary partition
+  #e - extended partition
+  #w - write the table to disk and exit
+  #空行表示回车
+  #使用fdisk分区
+  fdisk "$hd" <<EOF
 g
 n
 
@@ -247,78 +518,153 @@ w
 EOF
 }
 
+# ----------------------------------------------------------------------------
+# format-partitions — 格式化分区并挂载到 /mnt
+# ----------------------------------------------------------------------------
+# NVMe 磁盘特殊处理：
+#   SATA 磁盘分区名为 /dev/sda1, /dev/sda2 ...
+#   NVMe 磁盘分区名为 /dev/nvme0n1p1, /dev/nvme0n1p2 ...（多了一个 'p'）
+#   所以检测到 nvme 时在设备路径后追加 'p'
+#
+# 挂载结构：
+#   /mnt           ← 分区2（Root，ext4）
+#   /mnt/home      ← 分区3（Home，ext4）
+#   /mnt/boot/efi  ← 分区1（Boot，FAT32，仅 UEFI 模式）
+#
+# FAT32 是 EFI 标准要求的文件系统格式，BIOS 模式不需要单独格式化 Boot 分区
 format-partitions() {
-    local hd=${1:?}
-    local -r uefi=${2:?}
+  local hd=${1:?}
+  local -r uefi=${2:?}
 
-    echo "$hd" | grep -E 'nvme' &> /dev/null && hd="${hd}p"
+  # NVMe 磁盘分区名带 'p'（nvme0n1p1 vs sda1）
+  echo "$hd" | grep -E 'nvme' &>/dev/null && hd="${hd}p"
 
-    # mkswap "${hd}2"
-    # swapon "${hd}2"
+  # Swap 分区（当前禁用）
+  # mkswap "${hd}2"
+  # swapon "${hd}2"
 
-    mkfs.ext4 "${hd}2"
-    mount "${hd}2" /mnt
+  # 格式化并挂载 Root 分区
+  mkfs.ext4 "${hd}2"
+  mount "${hd}2" /mnt
 
-    mkfs.ext4 "${hd}3"
-    mkdir -p /mnt/home
-    mount "${hd}3" /mnt/home
+  # 格式化并挂载 Home 分区
+  mkfs.ext4 "${hd}3"
+  mkdir -p /mnt/home
+  mount "${hd}3" /mnt/home
 
-    log INFO "$uefi" "$output"
-    [[ "$uefi" == 1 ]] && \
-        mkfs.fat -F32 "${hd}1" && \
-        mkdir -p /mnt/boot/efi && \
-        mount "${hd}"1 /mnt/boot/efi
+  # UEFI 模式：格式化 Boot 分区为 FAT32 并挂载
+  log INFO "$uefi" "$output"
+  [[ "$uefi" == 1 ]] &&
+    mkfs.fat -F32 "${hd}1" &&
+    mkdir -p /mnt/boot/efi &&
+    mount "${hd}"1 /mnt/boot/efi
 }
 
+# ----------------------------------------------------------------------------
+# select-mirror-source — 配置 pacman 国内镜像源
+# ----------------------------------------------------------------------------
+# 1. 停止 reflector 服务（Arch 自带的镜像自动选择工具，会覆盖我们的设置）
+# 2. 在 mirrorlist 文件头部插入两个国内镜像源（头部 = 最高优先级）：
+#    - 中科大 mirrors.ustc.edu.cn
+#    - 清华 mirrors.tuna.tsinghua.edu.cn
+#
+# sed -i "1i ..."  在第一行前插入文本
 select-mirror-source() {
-    systemctl stop reflector.service
-    sed -i "1i Server = https://mirrors.ustc.edu.cn/archlinux/\$repo/os/\$arch\nServer = https://mirrors.tuna.tsinghua.edu.cn/archlinux/\$repo/os/\$arch" /etc/pacman.d/mirrorlist
+  systemctl stop reflector.service
+  sed -i "1i Server = https://mirrors.ustc.edu.cn/archlinux/\$repo/os/\$arch\nServer = https://mirrors.tuna.tsinghua.edu.cn/archlinux/\$repo/os/\$arch" /etc/pacman.d/mirrorlist
 }
 
-
+# ----------------------------------------------------------------------------
+# install-arch-linux — 安装 Arch Linux 基础系统
+# ----------------------------------------------------------------------------
+# pacstrap: Arch 专用的系统安装工具，在指定目录下安装完整的根文件系统
+# 参数 /mnt 表示安装到 /mnt 目录（即我们之前挂载的 Root 分区）
+#
+# 安装的软件包分组：
+#   🏗️ 基础：base linux base-devel linux-firmware man-db
+#   🔧 引导：grub efibootmgr
+#   🌐 网络：iwd（WiFi）dhcpcd（有线DHCP）openssh（SSH服务端）
+#   💻 开发：git neovim
+#   🔊 音频：pulseaudio pulseaudio-bluetooth
+#   📶 蓝牙：bluez-utils bluez
+#   🇨🇳 中文：wqy-zenhei（文泉驿字体）fcitx5-im fcitx5-chinese-addons（输入法框架）
+#   🖥️ 桌面：i3（窗口管理器）dmenu（应用启动器）xorg-server（显示服务器）tmux
+#   📟 终端：konsole（KDE终端）yakuake（下拉式终端）
+#   🌍 浏览器：firefox
+#   📂 工具：tree ranger imlib2
+#   🛠️ 其他：flameshot（截图）termdown（倒计时）docker ntfs-3g（NTFS支持）
+#
+# genfstab -U /mnt >>/mnt/etc/fstab
+#   自动生成文件系统挂载表（fstab），新系统启动时根据此文件自动挂载分区
+#   -U 使用 UUID 标识分区（比设备名更稳定，不会因磁盘插拔顺序变化）
 install-arch-linux() {
-    pacstrap /mnt base linux base-devel linux-firmware man-db \
-        grub efibootmgr \
-        iwd dhcpcd openssh \
-        git neovim \
-        pulseaudio pulseaudio-bluetooth \
-        bluez-utils bluez \
-        wqy-zenhei fcitx5-im fcitx5-chinese-addons \
-        i3 dmenu xorg-server tmux \
-        konsole yakuake \
-        firefox \
-        tree ranger imlib2 \
-        flameshot termdown docker ntfs-3g
+  pacstrap /mnt base linux base-devel linux-firmware man-db \
+    grub efibootmgr \
+    iwd dhcpcd openssh \
+    git neovim \
+    pulseaudio pulseaudio-bluetooth \
+    bluez-utils bluez \
+    wqy-zenhei fcitx5-im fcitx5-chinese-addons \
+    i3 dmenu xorg-server tmux \
+    konsole yakuake \
+    firefox \
+    tree ranger imlib2 \
+    flameshot termdown docker ntfs-3g
 
-    genfstab -U /mnt >> /mnt/etc/fstab
+  genfstab -U /mnt >>/mnt/etc/fstab
 }
 
+# ----------------------------------------------------------------------------
+# install-chroot — chroot 进入新系统执行第二阶段脚本
+# ----------------------------------------------------------------------------
+# 1. 从远程仓库下载 install_2_chroot.sh 到新系统的根目录
+# 2. arch-chroot /mnt 切换根目录到新安装的系统
+# 3. 在新系统环境中执行 install_2_chroot.sh
+#
+# 💡 远程下载实现脚本热更新：修改仓库中的脚本后无需重新制作 ISO
+# 💡 此时第二阶段脚本可以读取 /mnt/var_* 文件获取变量
 install-chroot() {
-    local -r installer_url=${1:?}
+  local -r installer_url=${1:?}
 
-    curl "$installer_url/install_2_chroot.sh" > /mnt/install_2_chroot.sh
-    arch-chroot /mnt bash install_2_chroot.sh
+  curl "$installer_url/install_2_chroot.sh" >/mnt/install_2_chroot.sh
+  arch-chroot /mnt bash install_2_chroot.sh
 }
 
+# ----------------------------------------------------------------------------
+# clean — 清理临时变量文件
+# ----------------------------------------------------------------------------
+# 删除之前保存到 /mnt/ 下的临时状态文件
+# 这些文件只在 run() 函数中写入、在第二阶段脚本中读取，完成后即可删除
 clean() {
-    rm /mnt/var_uefi
-    rm /mnt/var_disk
-    rm /mnt/var_hostname
-    rm /mnt/var_output
-    rm /mnt/var_dry_run
+  rm /mnt/var_uefi
+  rm /mnt/var_disk
+  rm /mnt/var_hostname
+  rm /mnt/var_output
+  rm /mnt/var_dry_run
 }
 
+# ----------------------------------------------------------------------------
+# end-of-install — 安装完成对话框
+# ----------------------------------------------------------------------------
+# dialog --yesno 返回值：
+#   0 = 用户选了"是"
+#   1 = 用户选了"否"
+# 选"是" → reboot 重启进入新安装的系统
+# 选"否" → clear 清屏，留在 Live USB 环境（可手动检查或继续调试）
 end-of-install() {
-    dialog --title "Reboot time" \
-        --yesno "Congrats! The install is done! \n\nTo run the new graphical environment, you need to restart your computer. \n\nDo you want to restart now?" 20 60
+  dialog --title "Reboot time" \
+    --yesno "Congrats! The install is done! \n\nTo run the new graphical environment, you need to restart your computer. \n\nDo you want to restart now?" 20 60
 
-    response=$?
-    case $response in
-        0) reboot;;
-        1) clear;;
-    esac
+  response=$?
+  case $response in
+  0) reboot ;;
+  1) clear ;;
+  esac
 
-    clear
+  clear
 }
 
+# ============================================================================
+# 脚本入口：将所有命令行参数传给 run 函数
+# ============================================================================
 run "$@"

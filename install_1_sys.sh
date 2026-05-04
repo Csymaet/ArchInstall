@@ -7,8 +7,7 @@ set -euo pipefail
 
 # YOU NEED TO MODIFY YOUR INSTALL URL
 url-installer() {
-    # echo "https://raw.githubusercontent.com/Csymaet/ArchInstall/master"
-    echo "192.168.1.145:8081"
+    echo "https://gitee.com/unityw/ArchInstall/raw/master"
 }
 
 run() {

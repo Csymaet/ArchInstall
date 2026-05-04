@@ -16,7 +16,7 @@ run() {
 
     ## 安装dialog
     log INFO "INSTALL DIALOG" "$output"
-    install-dialog
+
 
     ## 安装并设置grub
     log INFO "INSTALL GRUB ON $hd WITH UEFI $uefi" "$output"
@@ -69,9 +69,6 @@ write-hostname() {
     echo "$hostname" > /etc/hostname
 }
 
-install-dialog() {
-    pacman --noconfirm --needed -S dialog
-}
 
 install-grub() {
     local -r hd=${1:?}
@@ -133,7 +130,7 @@ config_user() {
 
     # Create user if doesn't exist
     if [[ ! "$(id -u "$name" 2> /dev/null)" ]]; then
-        dialog --infobox "Adding user $name..." 4 50
+        echo "Adding user $name..."
         # useradd -m -g wheel -s /bin/bash "$name"
         useradd -m -s /bin/bash "$name"
     fi

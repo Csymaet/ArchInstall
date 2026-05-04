@@ -34,19 +34,26 @@
 
 **`install_3_apps.sh`**（chroot 环境，root 身份）：
 1. 添加 archlinuxcn 仓库
-2. 安装 yay
-3. 根据用户选择安装软件（统一用 yay）
-4. 启用系统服务（`scripts/enable-services.sh`）
-5. 系统级应用配置（`scripts/config-apps-system.sh`）
+2. 安装 yay + v2raya（必装软件）
+3. 启用网络服务（iwd、dhcpcd）
+4. 设置 sudo 权限
+5. 保存用户选择的软件列表到用户主目录
 
 **`install_4_user.sh`**（chroot 环境，普通用户身份）：
-1. 创建用户目录（`scripts/create-directories.sh`）
-2. 用户级应用配置（`scripts/config-apps-user.sh`）
+1. 创建用户目录
+
+**`install_5_apps.sh`**（进入系统后手动执行）：
+1. 安装用户选择的软件（yay）
+2. 启用系统服务（`scripts/enable-services.sh`）
+3. 应用配置（`scripts/config-apps.sh`）
+
+用法：`bash install_5_apps.sh <远程仓库地址>`
 
 ## 📂 目录结构
 
 ```
 apps/                       软件列表 CSV（按分类）
+  ai.csv                    AI 工具
   audio.csv                 音频 / 蓝牙
   base.csv                  基础系统（必装）
   chinese.csv               中文支持
@@ -63,10 +70,8 @@ files/                      纯配置文件
   v2raya/                   v2rayA 代理配置
 
 scripts/                    可执行脚本（按需修改）
-  enable-services.sh        🔒 root 级 — 启用系统服务
-  config-apps-system.sh     🔒 root 级 — 系统级应用配置
-  config-apps-user.sh       👤 用户级 — 个人应用配置
-  create-directories.sh     👤 用户级 — 创建用户目录
+  enable-services.sh        启用系统服务
+  config-apps.sh            应用配置（系统级 + 用户级合并）
 ```
 
 ## 📋 CSV 格式

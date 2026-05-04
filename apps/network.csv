@@ -1,6 +1,6 @@
 iwd,WiFi 守护进程（无网络无法下载后续脚本和软件）,必装
 dhcpcd,DHCP 客户端（有线网络必需）,必装
 openssh,SSH 远程登录,默认
-v2ray,代理核心,默认
-v2raya,代理图形界面,默认
+v2ray,代理核心,必装
+v2raya,代理图形界面,必装
 linuxqq,Linux QQ,默认

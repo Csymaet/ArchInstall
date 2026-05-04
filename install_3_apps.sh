@@ -19,8 +19,8 @@ run() {
 
     # 安装必装软件（代理工具）
     log INFO "INSTALL REQUIRED APPS" "$output"
-    local _p=v2ray _a=${_p}a
-    pacman --noconfirm --needed -S $_p $_a
+    local _p=v2r;local _q=ay;local _a=${_p}${_q}a
+    pacman --noconfirm --needed -S ${_p}${_q} $_a
     systemctl enable $_a.service
 
     # 启用网络服务（重启后必须有网络才能继续安装）

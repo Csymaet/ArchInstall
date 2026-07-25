@@ -1,4 +1,3 @@
 dhcpcd,DHCP 客户端（有线网络必需）,必装
 iwd,WiFi 守护进程（无网络无法下载后续脚本和软件）,必装
-linuxqq,Linux QQ,默认
 openssh,SSH 远程登录,默认

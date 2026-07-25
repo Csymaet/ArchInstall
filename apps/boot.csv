@@ -1,0 +1,5 @@
+efibootmgr,EFI 启动项注册（UEFI 模式下 grub-install 依赖它）,必装
+grub,引导加载器（BIOS/UEFI 加载操作系统的入口）,必装
+os-prober,操作系统检测（grub 检测双系统依赖）,默认
+refind,EFI 启动管理器（双系统推荐）,可选
+refind-theme-dracula,rEFInd Dracula 主题 (AUR),可选

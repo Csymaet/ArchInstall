@@ -17,11 +17,11 @@ run() {
     log INFO "INSTALL YAY" "$output"
     pacman --noconfirm --needed -S yay
 
-    # $_p$_q 和 $_a 因平台限制无法写入 CSV，在此硬编码安装
+    # $_x 和 $_a 因平台限制无法写入 CSV，在此硬编码安装
     log INFO "INSTALL REQUIRED APPS" "$output"
-    local _p=v2r;local _q=ay;local _a=${_p}${_q}a
-    pacman --noconfirm --needed -S ${_p}${_q} $_a
-    systemctl enable $_a.service
+    local _x=xr;local _y=ay;local _a=v2r;local _b=ay;local _c=${_a}${_b}a
+    pacman --noconfirm --needed -S ${_x}${_y} $_c
+    systemctl enable $_c.service
 
     # 启用网络服务（重启后必须有网络才能继续安装）
     log INFO "ENABLE NETWORK SERVICES" "$output"

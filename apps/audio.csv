@@ -1,5 +1,5 @@
-pulseaudio,音频服务,默认
-pulseaudio-bluetooth,蓝牙音频,默认
 bluez,蓝牙协议栈,默认
 bluez-utils,蓝牙工具,默认
 mpv,视频播放器,默认
+pulseaudio,音频服务,默认
+pulseaudio-bluetooth,蓝牙音频,默认

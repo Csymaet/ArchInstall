@@ -1,7 +1,7 @@
-xorg-server,X 服务器,默认
-i3,平铺窗口管理器,默认
 dmenu,应用启动菜单,默认
+i3,平铺窗口管理器,默认
+konsole,KDE 终端,默认
 sddm,登录管理器,默认
 sddm-sugar-dark,SDDM 主题,默认
-konsole,KDE 终端,默认
 tmux,终端复用器,默认
+xorg-server,X 服务器,默认

@@ -4,4 +4,5 @@ base-devel,基础开发工具（编译 AUR 包必需）,必装
 linux,Linux 内核（硬件与软件之间的桥梁）,必装
 linux-firmware,硬件固件（驱动硬件正常工作所需的微代码）,必装
 man-db,手册页,默认
+pacman-contrib,Pacman 辅助工具,默认
 yay,AUR 包管理器（安装第三方软件必需）,必装

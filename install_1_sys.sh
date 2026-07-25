@@ -204,7 +204,10 @@ run() {
   # 内部会倒序擦除（sda2→sda1），避免分区表变化导致设备节点消失
   if [[ "$dry_run" = false ]]; then
     log INFO "WIPE FILESYSTEM SIGNATURES" "$output"
-    wipe-fs "$disk" || { log ERROR "wipe-fs failed for $disk" "$output"; exit 1; }
+    wipe-fs "$disk" || {
+      log ERROR "wipe-fs failed for $disk" "$output"
+      exit 1
+    }
   fi
 
   local uefi_val
@@ -218,7 +221,10 @@ run() {
   #   分区2：剩余空间 — Root (Linux filesystem)
   if [[ "$dry_run" = false ]]; then
     log INFO "CREATE PARTITIONS: disk=$disk uefi=$uefi_val" "$output"
-    fdisk-partition "$disk" "$uefi_val" || { log ERROR "fdisk-partition failed for $disk" "$output"; exit 1; }
+    fdisk-partition "$disk" "$uefi_val" || {
+      log ERROR "fdisk-partition failed for $disk" "$output"
+      exit 1
+    }
   fi
 
   # ==========================================================================
@@ -234,7 +240,10 @@ run() {
   # 🔒 dry_run 模式下跳过此步骤
   if [[ "$dry_run" = false ]]; then
     log INFO "FORMAT PARTITIONS" "$output"
-    format-partitions "$disk" "$uefi_val" || { log ERROR "format-partitions failed for $disk" "$output"; exit 1; }
+    format-partitions "$disk" "$uefi_val" || {
+      log ERROR "format-partitions failed for $disk" "$output"
+      exit 1
+    }
   fi
 
   # ==========================================================================
@@ -279,7 +288,7 @@ run() {
   #   📶 蓝牙：bluez-utils bluez
   #   🇨🇳 中文支持：wqy-zenhei（字体）fcitx5-im fcitx5-chinese-addons（输入法）
   #   🖥️ 窗口管理：i3 dmenu xorg-server tmux
-  #   📟 终端：konsole yakuake
+  #   📟 终端：konsole
   #   🌍 浏览器：firefox
   #   📂 文件管理：tree ranger imlib2
   #   🛠️ 其他：flameshot（截图）termdown（倒计时）docker ntfs-3g

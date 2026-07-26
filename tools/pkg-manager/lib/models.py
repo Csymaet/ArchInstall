@@ -1,4 +1,4 @@
-"""数据模型：包信息和对比状态。无 Textual 依赖。"""
+"""数据模型：包信息和对比状态。"""
 
 from __future__ import annotations
 
@@ -7,26 +7,23 @@ from enum import Enum
 
 
 class PkgState(Enum):
-    """包的三态分类。"""
-    MANAGED = "managed"        # 本机有 + CSV 有
-    LOCAL_ONLY = "local_only"  # 仅本机
-    CSV_ONLY = "csv_only"      # 仅 CSV
+    MANAGED = "managed"
+    LOCAL_ONLY = "local_only"
+    CSV_ONLY = "csv_only"
 
 
 @dataclass(frozen=True, slots=True)
 class PkgInfo:
-    """单个包的完整信息。"""
     name: str
     version: str = ""
     description: str = ""
     state: PkgState = PkgState.MANAGED
-    category: str = ""        # CSV 来源分类（base/tools/dev/...）
-    level: str = ""           # 必装/默认/可选（仅 CSV 包有）
+    category: str = ""
+    level: str = ""
 
 
 @dataclass(frozen=True, slots=True)
 class PackageDiff:
-    """三态对比结果。"""
     managed: list[PkgInfo]
     local_only: list[PkgInfo]
     csv_only: list[PkgInfo]

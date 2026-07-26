@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-import logging
-from pathlib import Path
+from rich.text import Text
 
 from textual import work
 from textual.app import App, ComposeResult
@@ -11,28 +10,13 @@ from textual.binding import Binding
 from textual.reactive import reactive
 from textual.widgets import DataTable, Footer, Label
 
-from constants import STATE_ICONS
-from models import PackageDiff, PkgInfo
-from sources import gather
-
-LOG_FILE = Path("/tmp/pkg-manager.log")
-logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG, format="%(asctime)s %(levelname)s %(message)s")
-log = logging.getLogger(__name__)
-
-SORT_LABELS = {
-    "状态": "状态",
-    "包名": "包名",
-    "分类": "分类",
-    "级别": "级别",
-    "版本": "版本",
-    "描述": "描述",
-}
+from lib.constants import COLUMN_LABELS, STATE_ICONS
+from lib.models import PackageDiff, PkgInfo
+from lib.sources import SourceError, gather
 
 
 class PkgManagerApp(App):
-    """对比本机 pacman 显式安装包与 archinstall CSV 的只读查看器。"""
-
-    CSS_PATH = "style.tcss"
+    CSS_PATH = "lib/style.tcss"
     TITLE = "pkg-manager"
 
     BINDINGS = [
@@ -59,7 +43,7 @@ class PkgManagerApp(App):
 
     def on_mount(self) -> None:
         table = self.query_one(DataTable)
-        for label in SORT_LABELS:
+        for label in COLUMN_LABELS:
             table.add_column(label, key=label)
         table.cursor_type = "row"
         table.focus()
@@ -79,27 +63,9 @@ class PkgManagerApp(App):
         self._update_headers()
         self._render()
 
-    def _update_headers(self) -> None:
-        from rich.text import Text
-        table = self.query_one(DataTable)
-        labels = list(SORT_LABELS.keys())
-        for i, col in enumerate(table.ordered_columns):
-            base = labels[i]
-            if base == self._sort_column:
-                arrow = " ▼" if self._sort_desc else " ▲"
-                col.label = Text(base + arrow)
-                header_len = len(base) + 2
-            else:
-                col.label = Text(base)
-                header_len = len(base)
-            col.content_width = max(col.content_width, header_len)
-        table.refresh()
-
-    # ── reactive watchers ──
     def watch_current_filter(self, _: str) -> None:
         self._render()
 
-    # ── bindings ──
     def action_filter_all(self) -> None:
         self.current_filter = "all"
 
@@ -115,25 +81,19 @@ class PkgManagerApp(App):
     def action_refresh(self) -> None:
         self.load_data()
 
-    # ── worker ──
     @work(exclusive=True, thread=True)
     def load_data(self) -> None:
         table = self.query_one(DataTable)
         self.call_from_thread(table.clear)
         try:
             diff = gather()
-            log.info(f"loaded: managed={len(diff.managed)} local={len(diff.local_only)} csv={len(diff.csv_only)}")
-        except Exception as e:
-            import traceback
-            tb = traceback.format_exc()
-            log.error(f"gather failed:\n{tb}")
+        except SourceError as e:
             self.call_from_thread(self.notify, f"⚠️ {e}", severity="error", timeout=30)
             diff = PackageDiff([], [], [])
         self._diff = diff
         self.call_from_thread(self._update_stats)
         self.call_from_thread(self._render)
 
-    # ── rendering ──
     def _update_stats(self) -> None:
         if not self._diff:
             return
@@ -149,6 +109,17 @@ class PkgManagerApp(App):
             else:
                 rendered.append(f"[$text-muted]{text}[/]")
         self.query_one("#stats", Label).update("  ".join(rendered))
+
+    def _update_headers(self) -> None:
+        table = self.query_one(DataTable)
+        for i, col in enumerate(table.ordered_columns):
+            base = COLUMN_LABELS[i]
+            if base == self._sort_column:
+                arrow = " ▼" if self._sort_desc else " ▲"
+                col.label = Text(base + arrow)
+            else:
+                col.label = Text(base)
+        table.refresh()
 
     def _render(self) -> None:
         table = self.query_one(DataTable)
@@ -188,7 +159,6 @@ class PkgManagerApp(App):
 
 
 def main() -> None:
-    log.info("app starting")
     PkgManagerApp().run()
 
 

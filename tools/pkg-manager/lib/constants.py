@@ -1,11 +1,11 @@
-"""常量定义：路径、命令、UI 配置。"""
+"""常量定义：路径、命令、列配置。"""
 
 from __future__ import annotations
 
 import os
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 CSV_DIR: Path = Path(os.environ.get(
     "ARCHINSTALL_CSV_DIR",
     PROJECT_ROOT / "apps",
@@ -31,3 +31,5 @@ STATE_ICONS: dict[str, str] = {
     FILTER_LOCAL_ONLY: "📦",
     FILTER_CSV_ONLY: "📋",
 }
+
+COLUMN_LABELS: list[str] = ["状态", "包名", "分类", "级别", "版本", "描述"]

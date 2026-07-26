@@ -1,0 +1,24 @@
+#stats {
+    height: 1;
+    color: $text-muted;
+    padding: 0 1;
+}
+
+#table {
+    height: 1fr;
+}
+
+DataTable > .datatable--header {
+    background: $boost;
+    text-style: bold;
+}
+
+DataTable > .datatable--cursor {
+    background: $primary 30%;
+}
+
+DataTable:focus > .datatable--cursor {
+    background: $primary;
+    color: $text;
+    text-style: bold;
+}

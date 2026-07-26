@@ -26,8 +26,8 @@ class PkgManagerApp(App):
         Binding("3", "filter_local_only", "仅本机"),
         Binding("4", "filter_csv_only", "仅CSV"),
         Binding("r", "refresh", "刷新"),
-        Binding("j", "cursor_down", show=False),
-        Binding("k", "cursor_up", show=False),
+        Binding("j", "cursor_down", "↓"),
+        Binding("k", "cursor_up", "↑"),
     ]
 
     current_filter: reactive[str] = reactive("all")

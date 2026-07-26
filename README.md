@@ -54,14 +54,25 @@
 ```
 apps/                       软件列表 CSV（按分类）
   ai.csv                    AI 工具
-  audio.csv                 音频 / 蓝牙
+  audio.csv                 音频
   base.csv                  基础系统（必装）
-  chinese.csv               中文支持
+  bluetooth.csv             蓝牙
+  boot.csv                  启动引导
   desktop.csv               桌面环境
   dev.csv                   开发工具
+  display.csv               显示（Xorg/SDDM/亮度）
+  download.csv              下载工具
+  file.csv                  文件管理
+  font.csv                  字体
+  input.csv                 输入法
+  media.csv                 媒体（播放/图片/截图）
   network.csv               网络工具
   shell.csv                 Shell
+  system.csv                系统监控
+  terminal.csv              终端
+  text.csv                  文本编辑
   tools.csv                 实用工具
+  vm.csv                    虚拟机
 
 files/                      纯配置文件
   i3/config                 i3 窗口管理器配置
@@ -71,6 +82,9 @@ files/                      纯配置文件
 scripts/                    可执行脚本（按需修改）
   enable-services.sh        启用系统服务
   config-apps.sh            应用配置（系统级 + 用户级合并）
+
+tools/                      辅助工具
+  pkg-manager/              包管理对比 TUI（对比本机包与 CSV）
 ```
 
 ## 📋 CSV 格式

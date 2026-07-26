@@ -4,3 +4,5 @@ git,版本控制（yay 安装 AUR 包必需）,必装
 npm,JavaScript 包管理器,默认
 pgcli,PostgreSQL CLI（自动补全+语法高亮）,可选
 postgresql,PostgreSQL 数据库,可选
+python-pip,Python 包管理器,默认
+python-uv,快速 Python 包管理（替代 pip+virtualenv）,可选

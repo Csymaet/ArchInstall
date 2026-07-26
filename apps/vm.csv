@@ -1,1 +1,6 @@
+qemu-desktop,QEMU 桌面配置（x86 + GUI）,可选
+qemu-system-aarch64,QEMU ARM64 模拟器,可选
+virt-manager,虚拟机图形管理,可选
+waydroid,Android 容器,可选
+waydroid-image-gapps,Waydroid 镜像（含 GApps）,可选
 weston,Wayland 合成器（Waydroid 嵌套用）,可选

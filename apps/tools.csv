@@ -13,7 +13,13 @@ keynav-git,键盘控鼠标 (AUR),可选
 linuxqq,Linux QQ,默认
 ntfs-3g,NTFS 文件系统支持,可选
 nvme-cli,NVMe SSD 管理工具,默认
+python-faster-whisper,Whisper 语音转文字 (AUR),可选
+python-garminconnect,Garmin API 封装 (AUR),可选
+python-garth,Garmin 认证库 (AUR),可选
 ranger,终端文件管理器,默认
+smartmontools,硬盘 SMART 监控,默认
+socat,网络中继工具（KVM 端口转发）,可选
+sunloginclient,向日葵远程控制 (AUR),可选
 termdown,终端倒计时,默认
 termscp,文件传输工具,默认
 trash-cli,命令行回收站,默认

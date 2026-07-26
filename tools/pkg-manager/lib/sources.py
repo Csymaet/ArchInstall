@@ -53,6 +53,8 @@ def load_csv_packages(csv_dir: Path = CSV_DIR) -> dict[str, PkgInfo]:
     if not csv_dir.is_dir():
         return packages
 
+    groups = _load_package_groups()
+
     for csv_file in sorted(csv_dir.glob("*.csv")):
         category = csv_file.stem
         with csv_file.open(encoding="utf-8", newline="") as f:
@@ -62,13 +64,35 @@ def load_csv_packages(csv_dir: Path = CSV_DIR) -> dict[str, PkgInfo]:
                 name = row[0].strip()
                 desc = row[1].strip() if len(row) > 1 else ""
                 level = row[2].strip() if len(row) > 2 else ""
-                packages[name] = PkgInfo(
-                    name=name,
-                    description=desc,
-                    category=category,
-                    level=level,
-                )
+                for member in groups.get(name, [name]):
+                    packages[member] = PkgInfo(
+                        name=member,
+                        description=desc,
+                        category=category,
+                        level=level,
+                    )
     return packages
+
+
+def _load_package_groups() -> dict[str, list[str]]:
+    try:
+        result = subprocess.run(
+            ["pacman", "-Sgg"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            env={**os.environ, **PACMAN_ENV},
+            timeout=10,
+        )
+    except Exception:
+        return {}
+
+    groups: dict[str, list[str]] = {}
+    for line in result.stdout.splitlines():
+        parts = line.split(maxsplit=1)
+        if len(parts) == 2:
+            groups.setdefault(parts[0], []).append(parts[1])
+    return groups
 
 
 def diff_packages(

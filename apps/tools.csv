@@ -1,30 +1,10 @@
 age,现代文件加密工具,可选
-android-tools,Android 平台工具（adb/fastboot）,可选
-baidupcs-go,百度网盘 CLI,可选
-brightnessctl,屏幕亮度控制,默认
 clitrans-git,命令行翻译 (AUR),可选
-dedao-dl-bin,得到课程下载器 (AUR),可选
-fastfetch,系统信息显示工具,默认
 firefox,Firefox 浏览器,默认
-flameshot,截图工具,默认
-htop,进程监控,默认
-imlib2,ranger 图片预览依赖,默认
 keynav-git,键盘控鼠标 (AUR),可选
 linuxqq,Linux QQ,默认
-ntfs-3g,NTFS 文件系统支持,可选
-nvme-cli,NVMe SSD 管理工具,默认
 python-faster-whisper,Whisper 语音转文字 (AUR),可选
 python-garminconnect,Garmin API 封装 (AUR),可选
 python-garth,Garmin 认证库 (AUR),可选
-ranger,终端文件管理器,默认
-smartmontools,硬盘 SMART 监控,默认
-socat,网络中继工具（KVM 端口转发）,可选
 sunloginclient,向日葵远程控制 (AUR),可选
 termdown,终端倒计时,默认
-termscp,文件传输工具,默认
-trash-cli,命令行回收站,默认
-tree,目录树显示,默认
-unzip,ZIP 解压,默认
-w3m,ranger 图片预览依赖,默认
-wget,命令行下载工具,默认
-yt-dlp,YouTube视频下载器,可选

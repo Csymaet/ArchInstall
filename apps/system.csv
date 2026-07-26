@@ -1,0 +1,5 @@
+fastfetch,系统信息显示工具,默认
+htop,进程监控,默认
+ntfs-3g,NTFS 文件系统支持,可选
+nvme-cli,NVMe SSD 管理工具,默认
+smartmontools,硬盘 SMART 监控,默认

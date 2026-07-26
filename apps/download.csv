@@ -1,0 +1,4 @@
+baidupcs-go,百度网盘 CLI,可选
+dedao-dl-bin,得到课程下载器 (AUR),可选
+wget,命令行下载工具,默认
+yt-dlp,YouTube视频下载器,可选

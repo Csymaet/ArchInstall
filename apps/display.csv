@@ -1,3 +1,4 @@
+brightnessctl,屏幕亮度控制,默认
 sddm,登录管理器,默认
 sddm-sugar-dark,SDDM 主题,默认
 xorg-server,X 服务器,默认

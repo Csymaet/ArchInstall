@@ -26,6 +26,8 @@ class PkgManagerApp(App):
         Binding("3", "filter_local_only", "仅本机"),
         Binding("4", "filter_csv_only", "仅CSV"),
         Binding("r", "refresh", "刷新"),
+        Binding("j", "cursor_down", show=False),
+        Binding("k", "cursor_up", show=False),
     ]
 
     current_filter: reactive[str] = reactive("all")
@@ -80,6 +82,12 @@ class PkgManagerApp(App):
 
     def action_refresh(self) -> None:
         self.load_data()
+
+    def action_cursor_down(self) -> None:
+        self.query_one(DataTable).action_cursor_down()
+
+    def action_cursor_up(self) -> None:
+        self.query_one(DataTable).action_cursor_up()
 
     @work(exclusive=True, thread=True)
     def load_data(self) -> None:

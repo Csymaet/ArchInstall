@@ -13,7 +13,7 @@ if command -v docker &>/dev/null; then sudo gpasswd -a "$name" docker; fi
 if command -v zsh &>/dev/null; then sudo chsh -s /bin/zsh "$name"; fi
 
 # oh-my-zsh（会生成模板 .zshrc，必须在 deploy.py 之前）
-if command -v zsh &>/dev/null; then sh /usr/share/oh-my-zsh/tools/install.sh; fi
+if command -v zsh &>/dev/null && [[ ! -d ~/.oh-my-zsh ]]; then sh /usr/share/oh-my-zsh/tools/install.sh; fi
 
 # openclaw：初始化守护进程
 if command -v openclaw &>/dev/null; then openclaw onboard --install-daemon; fi

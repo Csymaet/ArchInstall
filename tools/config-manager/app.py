@@ -171,6 +171,7 @@ class ConfigManagerApp(App):
                 e.name,
                 _target_dir(e.target),
                 _newer_side(e.status),
+                _perm_icon(e.perm_ok),
                 TYPE_ICONS.get(e.cfg_type, ""),
                 e.stage,
             )
@@ -194,6 +195,12 @@ class ConfigManagerApp(App):
                 return self._diff.config_only
             case _:
                 return self._diff.entries
+
+
+def _perm_icon(perm_ok: bool | None) -> str:
+    if perm_ok is None:
+        return "-"
+    return "✅" if perm_ok else "❌"
 
 
 def _newer_side(status: CfgStatus) -> str:

@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import grp
 import hashlib
+import pwd
 import subprocess
 import tomllib
 from pathlib import Path
@@ -29,6 +31,7 @@ def gather() -> ConfigDiff:
         name = _derive_name(source)
         cfg_type = _infer_type(target)
         status = _compare(source_path, target_path)
+        perm_ok = _check_perms(target_path, item.get("mode"), item.get("owner"))
 
         entries.append(ConfigEntry(
             source=source,
@@ -39,6 +42,7 @@ def gather() -> ConfigDiff:
             status=status,
             source_path=str(source_path),
             target_path=str(target_path),
+            perm_ok=perm_ok,
         ))
 
     entries.sort(key=lambda e: e.name)
@@ -114,6 +118,23 @@ def _infer_type(target: str) -> str:
     if expanded.is_relative_to(home):
         return "user"
     return "system"
+
+
+def _check_perms(target: Path, expected_mode: str | None, expected_owner: str | None) -> bool | None:
+    if expected_mode is None and expected_owner is None:
+        return None
+    if not target.is_file():
+        return None
+    st = target.stat()
+    if expected_mode is not None:
+        actual_mode = f"{st.st_mode & 0o777:03o}"
+        if actual_mode != expected_mode:
+            return False
+    if expected_owner is not None:
+        actual_owner = f"{pwd.getpwuid(st.st_uid).pw_name}:{grp.getgrgid(st.st_gid).gr_name}"
+        if actual_owner != expected_owner:
+            return False
+    return True
 
 
 def _read_lines(path: str) -> list[str] | None:

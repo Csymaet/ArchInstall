@@ -25,6 +25,7 @@ class ConfigEntry:
     status: CfgStatus
     source_path: str
     target_path: str
+    perm_ok: bool | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -40,6 +41,7 @@ class ConfigDiff:
         return [
             e for e in self.entries
             if e.status in (CfgStatus.SYSTEM_NEWER, CfgStatus.REPO_NEWER)
+            or e.perm_ok is False
         ]
 
     @property

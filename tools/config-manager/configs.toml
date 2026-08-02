@@ -2,18 +2,26 @@
 # source = 仓库内路径（相对于 files/）
 # target = 系统路径（支持 ~ 展开为 $HOME）
 # stage  = script（安装脚本直接部署）| config（config-apps.sh 部署）
+# mode   = 目标权限（3位八进制，如 440），省略则不检查
+# owner  = 目标属主（如 root:root），省略则不检查
 
 [[configs]]
 source = "root/sudoers"
 target = "/etc/sudoers"
 stage  = "script"
+mode   = "440"
+owner  = "root:root"
 
 [[configs]]
 source = "root/sddm.conf"
 target = "/etc/sddm.conf.d/sddm.conf"
 stage  = "config"
+mode   = "644"
+owner  = "root:root"
 
 [[configs]]
 source = "eli/i3/config"
 target = "~/.config/i3/config"
 stage  = "config"
+mode   = "644"
+owner  = "eli:eli"

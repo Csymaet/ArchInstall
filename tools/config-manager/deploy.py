@@ -55,6 +55,19 @@ def main() -> None:
             parent.mkdir(parents=True, exist_ok=True)
             target_path.write_bytes(content)
 
+        mode = item.get("mode")
+        owner = item.get("owner")
+        if is_system:
+            if mode:
+                subprocess.run(["sudo", "chmod", mode, str(target_path)], check=True)
+            if owner:
+                subprocess.run(["sudo", "chown", owner, str(target_path)], check=True)
+        else:
+            if mode:
+                subprocess.run(["chmod", mode, str(target_path)], check=True)
+            if owner:
+                subprocess.run(["chown", owner, str(target_path)], check=True)
+
         print(f"  ✓ {source} → {target}")
         count += 1
 

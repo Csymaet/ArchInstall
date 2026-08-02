@@ -41,6 +41,9 @@ run() {
   ## 配置locale
   log INFO "CONFIGURE LOCALE" "$output"
   configure-locale "en_US.UTF-8" "UTF-8"
+  echo "zh_CN.UTF-8 UTF-8" >>/etc/locale.gen
+  locale-gen
+  echo "LANGUAGE=zh_CN" >>/etc/locale.conf
 
   ## root用户设置
   log INFO "ADD ROOT" "$output"

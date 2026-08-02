@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import subprocess
 import tomllib
 from pathlib import Path
 
@@ -82,11 +83,8 @@ def _compare(source: Path, target: Path) -> CfgStatus:
     if not t_exists:
         return CfgStatus.REPO_ONLY
 
-    try:
-        s_hash = _file_hash(source)
-        t_hash = _file_hash(target)
-    except PermissionError:
-        return CfgStatus.SYNCED
+    s_hash = _file_hash(source)
+    t_hash = _file_hash(target)
     if s_hash == t_hash:
         return CfgStatus.SYNCED
 
@@ -96,7 +94,11 @@ def _compare(source: Path, target: Path) -> CfgStatus:
 
 
 def _file_hash(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    try:
+        data = path.read_bytes()
+    except PermissionError:
+        data = _sudo_read_bytes(path)
+    return hashlib.sha256(data).hexdigest()
 
 
 def _derive_name(source: str) -> str:
@@ -119,6 +121,32 @@ def _read_lines(path: str) -> list[str] | None:
     if not p.is_file():
         return None
     try:
-        return p.read_text(encoding="utf-8", errors="replace").splitlines()
+        text = p.read_text(encoding="utf-8", errors="replace")
     except PermissionError:
+        text = _sudo_read_text(p)
+        if text is None:
+            return None
+    return text.splitlines()
+
+
+def _sudo_read_bytes(path: Path) -> bytes:
+    result = subprocess.run(
+        ["sudo", "-n", "cat", str(path)],
+        capture_output=True,
+        timeout=10,
+    )
+    return result.stdout
+
+
+def _sudo_read_text(path: Path) -> str | None:
+    result = subprocess.run(
+        ["sudo", "-n", "cat", str(path)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=10,
+    )
+    if result.returncode != 0:
         return None
+    return result.stdout

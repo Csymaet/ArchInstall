@@ -245,7 +245,6 @@ bar {
 }
 
 exec fcitx5
-exec VBoxClient-all
 exec gammastep -l 39.9:116.4 -t 4000:2500 -m randr
 exec --no-startup-id picom -b
 exec --no-startup-id /home/eli/.config/i3status/update-brightness.sh

@@ -25,3 +25,234 @@ target = "~/.config/i3/config"
 stage  = "config"
 mode   = "644"
 owner  = "eli:eli"
+
+[[configs]]
+source = "eli/.zshrc"
+target = "~/.zshrc"
+stage  = "config"
+mode   = "644"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/.zshenv"
+target = "~/.zshenv"
+stage  = "config"
+mode   = "644"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/.gitconfig"
+target = "~/.gitconfig"
+stage  = "config"
+mode   = "644"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/i3status/config"
+target = "~/.config/i3status/config"
+stage  = "config"
+mode   = "644"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/i3status/brightness.sh"
+target = "~/.config/i3status/brightness.sh"
+stage  = "config"
+mode   = "755"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/i3status/load.sh"
+target = "~/.config/i3status/load.sh"
+stage  = "config"
+mode   = "755"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/i3status/music.sh"
+target = "~/.config/i3status/music.sh"
+stage  = "config"
+mode   = "755"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/i3status/music-simple.sh"
+target = "~/.config/i3status/music-simple.sh"
+stage  = "config"
+mode   = "755"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/i3status/netspeed.py"
+target = "~/.config/i3status/netspeed.py"
+stage  = "config"
+mode   = "755"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/i3status/netspeed.sh"
+target = "~/.config/i3status/netspeed.sh"
+stage  = "config"
+mode   = "755"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/i3status/start_netspeed.sh"
+target = "~/.config/i3status/start_netspeed.sh"
+stage  = "config"
+mode   = "755"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/i3status/update-brightness.sh"
+target = "~/.config/i3status/update-brightness.sh"
+stage  = "config"
+mode   = "755"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/i3status/update-music.sh"
+target = "~/.config/i3status/update-music.sh"
+stage  = "config"
+mode   = "755"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/i3status/update_vpn_status.sh"
+target = "~/.config/i3status/update_vpn_status.sh"
+stage  = "config"
+mode   = "755"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/i3status/vpn_status.sh"
+target = "~/.config/i3status/vpn_status.sh"
+stage  = "config"
+mode   = "755"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/i3status/wrapper.py"
+target = "~/.config/i3status/wrapper.py"
+stage  = "config"
+mode   = "755"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/picom/picom.conf"
+target = "~/.config/picom/picom.conf"
+stage  = "config"
+mode   = "644"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/rofi/config.rasi"
+target = "~/.config/rofi/config.rasi"
+stage  = "config"
+mode   = "644"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/ranger/rc.conf"
+target = "~/.config/ranger/rc.conf"
+stage  = "config"
+mode   = "644"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/flameshot/flameshot.ini"
+target = "~/.config/flameshot/flameshot.ini"
+stage  = "config"
+mode   = "644"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/variety/variety.conf"
+target = "~/.config/variety/variety.conf"
+stage  = "config"
+mode   = "644"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/fcitx5/config"
+target = "~/.config/fcitx5/config"
+stage  = "config"
+mode   = "600"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/fcitx5/profile"
+target = "~/.config/fcitx5/profile"
+stage  = "config"
+mode   = "600"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/.npmrc"
+target = "~/.npmrc"
+stage  = "config"
+mode   = "600"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/konsole/Eli的配置方案.profile"
+target = "~/.local/share/konsole/Eli的配置方案.profile"
+stage  = "config"
+mode   = "600"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/konsolerc"
+target = "~/.config/konsolerc"
+stage  = "config"
+mode   = "600"
+owner  = "eli:eli"
+
+[[configs]]
+source = "root/pacman.conf"
+target = "/etc/pacman.conf"
+stage  = "script"
+mode   = "644"
+owner  = "root:root"
+
+[[configs]]
+source = "root/dhcpcd.conf"
+target = "/etc/dhcpcd.conf"
+stage  = "script"
+mode   = "644"
+owner  = "root:root"
+
+[[configs]]
+source = "root/profile"
+target = "/etc/profile"
+stage  = "script"
+mode   = "644"
+owner  = "root:root"
+
+[[configs]]
+source = "root/sysctl.d/99-sysctl.conf"
+target = "/etc/sysctl.d/99-sysctl.conf"
+stage  = "script"
+mode   = "644"
+owner  = "root:root"
+
+[[configs]]
+source = "root/bluetooth-main.conf"
+target = "/etc/bluetooth/main.conf"
+stage  = "script"
+mode   = "644"
+owner  = "root:root"
+
+[[configs]]
+source = "root/mirrorlist"
+target = "/etc/pacman.d/mirrorlist"
+stage  = "script"
+mode   = "644"
+owner  = "root:root"
+
+[[configs]]
+source = "root/waydroid.cfg"
+target = "/var/lib/waydroid/waydroid.cfg"
+stage  = "script"
+mode   = "644"
+owner  = "root:root"

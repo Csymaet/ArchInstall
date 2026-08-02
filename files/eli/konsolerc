@@ -1,0 +1,26 @@
+[Desktop Entry]
+DefaultProfile=Eli的配置方案.profile
+
+[General]
+ConfigVersion=1
+
+[KonsoleWindow]
+RememberWindowSize=false
+
+[MainWindow]
+1920x1080 screen: Height=1037
+1920x1080 screen: Width=1916
+1920x1080 screen: XPosition=2
+1920x1080 screen: YPosition=20
+:0.0 Height 1920x1080 :0.0=1037
+:0.0 Width 1920x1080 :0.0=1916
+HDMI-1=HDMI-1
+HDMI-2=HDMI-2
+HDMI-2 Height 1920x1080 HDMI-2=1037
+HDMI-2 Width 1920x1080 HDMI-2=956
+HDMI-2 XPosition 1920x1080 HDMI-2=962
+HDMI-2 YPosition 1920x1080 HDMI-2=20
+ToolBarsMovable=Disabled
+
+[UiSettings]
+ColorScheme=

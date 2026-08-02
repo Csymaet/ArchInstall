@@ -1,0 +1,98 @@
+# i3status configuration file.
+# see "man i3status" for documentation.
+
+general {
+        colors = true
+        interval = 1
+        color_good = "#a3be8c"
+        color_bad = "#bf616a"
+        color_degraded = "#ebcb8b"
+        output_format = "i3bar"
+        markup = pango
+}
+
+order += "load"
+order += "cpu_usage"
+order += "cpu_temperature 0"
+order += "memory"
+order += "disk /"
+order += "read_file netspeed"
+order += "read_file vpn_status"
+order += "wireless _first_"
+order += "ethernet _first_"
+order += "battery all"
+order += "volume master"
+order += "tztime local"
+
+load {
+        format = "⚡ %1min %5min %15min"
+        max_threshold = 5
+}
+
+cpu_usage {
+        format = "🖥️ %usage"
+        max_threshold = 75
+        degraded_threshold = 50
+}
+
+cpu_temperature 0 {
+        format = "🌡️ %degrees°C"
+        max_threshold = 80
+        path = "/sys/class/thermal/thermal_zone0/temp"
+}
+
+memory {
+        format = "💾 %used/%total"
+        threshold_degraded = "10%"
+        threshold_critical = "5%"
+        format_degraded = "💾 %used/%total"
+}
+
+disk "/" {
+        format = "💽 %avail"
+        threshold_type = "percentage_avail"
+        low_threshold = 10
+}
+
+read_file netspeed {
+        format = "%content"
+        path = "/tmp/i3status_netspeed"
+        max_characters = 50
+}
+
+wireless _first_ {
+        format_up = "📶 %quality %essid"
+        format_down = "📶 断开"
+}
+
+ethernet _first_ {
+        format_up = "🌐 %ip"
+        format_down = "🌐 断开"
+}
+
+battery all {
+        format = "%status %percentage %remaining"
+        format_down = "🔋 无电池"
+        status_chr = "⚡"
+        status_bat = "🔋"
+        status_unk = "❓"
+        status_full = "🔋"
+        low_threshold = 10
+        integer_battery_capacity = true
+}
+
+volume master {
+        format = "🔊 %volume"
+        format_muted = "🔇 静音"
+        device = "pulse"
+}
+
+read_file vpn_status {
+        format = "%content"
+        path = "/tmp/i3status_vpn"
+        max_characters = 20
+}
+
+tztime local {
+        format = "🕐 %Y-%m-%d %H:%M"
+}

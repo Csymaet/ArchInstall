@@ -76,17 +76,22 @@ apps/                       软件列表 CSV（按分类）
 
 files/                      纯配置文件
   root/                    系统级（部署到 /etc/，需 root）
-    sddm.conf              SDDM 登录管理器配置
-    sudoers                sudo 权限配置
+    sudoers, sddm.conf, pacman.conf, dhcpcd.conf, profile,
+    mirrorlist, bluetooth-main.conf, waydroid.cfg, sysctl.d/
   eli/                     用户级（部署到 ~/）
-    i3/config              i3 窗口管理器配置
+    .zshrc, .zshenv, .gitconfig, .npmrc, konsolerc
+    i3/config, i3status/*（14）, picom/, rofi/, ranger/,
+    flameshot/, variety/, fcitx5/, konsole/
 
 scripts/                    可执行脚本（按需修改）
   enable-services.sh        启用系统服务
-  config-apps.sh            应用配置（系统级 + 用户级合并）
+  config-apps.sh            从 configs.toml 驱动部署配置文件
 
 tools/                      辅助工具
   pkg-manager/              包管理对比 TUI（对比本机包与 CSV）
+  config-manager/           配置管理对比 TUI（对比仓库与系统配置）
+    configs.toml            配置文件映射表（source/target/mode/owner）
+    deploy.py               部署脚本（config-apps.sh 调用）
 ```
 
 ## 📋 CSV 格式

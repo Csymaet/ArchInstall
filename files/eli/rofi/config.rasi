@@ -1,0 +1,54 @@
+configuration {
+    /* 启用所有内置模式 - 完整版标签页功能 */
+    modi: "drun,window,windowcd,run,ssh,keys,filebrowser,recursivebrowser,combi";
+    
+    /* 显示模式切换器（标签页） */
+    show-icons: true;
+    sidebar-mode: true;
+    
+    /* 基本设置 */
+    width: 50;
+    lines: 15;
+    columns: 1;
+    font: "DejaVu Sans Mono 11";
+    
+    /* 启用图标 */
+    icon-theme: "Papirus";
+    
+    /* 使用默认键绑定，避免冲突 */
+    
+    /* 搜索设置 */
+    case-sensitive: false;
+    cycle: true;
+    
+    /* 其他设置 */
+    disable-history: false;
+    sort: false;
+    terminal: "i3-sensible-terminal";
+    
+    /* 显示设置 - 完整版标签页 */
+    display-drun: "📱 应用";
+    display-window: "🪟 窗口"; 
+    display-run: "⚡ 命令";
+    display-ssh: "🔗 SSH";
+    display-keys: "⌨️ 快捷键";
+    display-filebrowser: "📁 文件";
+    display-windowcd: "🖥️ 当前桌面";
+    display-recursivebrowser: "🗂️ 递归浏览";
+    display-combi: "🔄 组合";
+    
+    /* 位置和大小 */
+    location: 0;
+    yoffset: 0;
+    xoffset: 0;
+    fixed-num-lines: true;
+    
+    /* 外观 */
+    hide-scrollbar: false;
+    fullscreen: false;
+    fake-transparency: false;
+    
+    /* 点击设置 */
+    click-to-exit: true;
+    show-match: true;
+}

@@ -122,6 +122,8 @@ config_user() {
 
   if [[ ! "$(id -u "$name" 2>/dev/null)" ]]; then
     useradd -m -s /bin/bash "$name"
+    # 加入 wheel 组：iwctl 联网 + polkit 管理员身份（用自己的密码提权）
+    usermod -aG wheel "$name"
   fi
 
   echo "$name:$pass" | chpasswd

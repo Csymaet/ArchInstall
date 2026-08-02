@@ -1,0 +1,45 @@
+#stats {
+    height: 1;
+    color: $text-muted;
+    padding: 0 1;
+}
+
+#table {
+    height: 1fr;
+}
+
+DataTable > .datatable--header {
+    background: $boost;
+    text-style: bold;
+}
+
+DataTable > .datatable--cursor {
+    background: $primary 30%;
+}
+
+DataTable:focus > .datatable--cursor {
+    background: $primary;
+    color: $text;
+    text-style: bold;
+}
+
+DiffScreen {
+    background: $surface;
+    padding: 1 2;
+}
+
+DiffScreen > .title {
+    text-style: bold;
+    color: $accent;
+    margin-bottom: 1;
+}
+
+DiffScreen > .meta {
+    color: $text-muted;
+    margin-bottom: 1;
+}
+
+DiffScreen > RichLog {
+    height: 1fr;
+    border: solid $primary 50%;
+}

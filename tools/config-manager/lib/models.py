@@ -12,7 +12,7 @@ class CfgStatus(Enum):
     REPO_NEWER = "repo_newer"
     SYSTEM_ONLY = "system_only"
     REPO_ONLY = "repo_only"
-    MISSING = "missing"
+    CONFIG_ONLY = "config_only"
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,8 +51,8 @@ class ConfigDiff:
         return [e for e in self.entries if e.status is CfgStatus.REPO_ONLY]
 
     @property
-    def missing(self) -> list[ConfigEntry]:
-        return [e for e in self.entries if e.status is CfgStatus.MISSING]
+    def config_only(self) -> list[ConfigEntry]:
+        return [e for e in self.entries if e.status is CfgStatus.CONFIG_ONLY]
 
     @property
     def counts(self) -> dict[str, int]:
@@ -62,5 +62,5 @@ class ConfigDiff:
             "diff": len(self.diff),
             "system_only": len(self.system_only),
             "repo_only": len(self.repo_only),
-            "missing": len(self.missing),
+            "config_only": len(self.config_only),
         }

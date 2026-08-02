@@ -13,14 +13,14 @@ STATUS_SYSTEM_NEWER = "system_newer"
 STATUS_REPO_NEWER = "repo_newer"
 STATUS_SYSTEM_ONLY = "system_only"
 STATUS_REPO_ONLY = "repo_only"
-STATUS_MISSING = "missing"
+STATUS_CONFIG_ONLY = "config_only"
 
 FILTER_ALL = "all"
 FILTER_SYNCED = "synced"
 FILTER_DIFF = "diff"
 FILTER_SYSTEM_ONLY = "system_only"
 FILTER_REPO_ONLY = "repo_only"
-FILTER_MISSING = "missing"
+FILTER_CONFIG_ONLY = "config_only"
 
 STATUS_ICONS: dict[str, str] = {
     STATUS_SYNCED: "✅",
@@ -28,7 +28,7 @@ STATUS_ICONS: dict[str, str] = {
     STATUS_REPO_NEWER: "📦",
     STATUS_SYSTEM_ONLY: "🔵",
     STATUS_REPO_ONLY: "🟡",
-    STATUS_MISSING: "❌",
+    STATUS_CONFIG_ONLY: "❌",
 }
 
 TYPE_ICONS: dict[str, str] = {

@@ -77,7 +77,7 @@ def _compare(source: Path, target: Path) -> CfgStatus:
     t_exists = target.is_file()
 
     if not s_exists and not t_exists:
-        return CfgStatus.MISSING
+        return CfgStatus.CONFIG_ONLY
     if not s_exists:
         return CfgStatus.SYSTEM_ONLY
     if not t_exists:

@@ -170,6 +170,7 @@ class ConfigManagerApp(App):
                 STATUS_ICONS.get(e.status.value, "").ljust(5),
                 e.name,
                 _target_dir(e.target),
+                _newer_side(e.status),
                 TYPE_ICONS.get(e.cfg_type, ""),
                 e.stage,
             )
@@ -193,6 +194,14 @@ class ConfigManagerApp(App):
                 return self._diff.config_only
             case _:
                 return self._diff.entries
+
+
+def _newer_side(status: CfgStatus) -> str:
+    if status in (CfgStatus.SYSTEM_NEWER, CfgStatus.SYSTEM_ONLY):
+        return "系统"
+    if status in (CfgStatus.REPO_NEWER, CfgStatus.REPO_ONLY):
+        return "仓库"
+    return "-"
 
 
 def _target_dir(path: str) -> str:

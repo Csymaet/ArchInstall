@@ -36,4 +36,4 @@ TYPE_ICONS: dict[str, str] = {
     "user": "👤",
 }
 
-COLUMN_LABELS: list[str] = ["状态", "文件", "系统路径", "类型", "阶段"]
+COLUMN_LABELS: list[str] = ["状态", "文件", "系统路径", "更新方", "类型", "阶段"]

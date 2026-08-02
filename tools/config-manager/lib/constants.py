@@ -32,7 +32,7 @@ STATUS_ICONS: dict[str, str] = {
 }
 
 TYPE_ICONS: dict[str, str] = {
-    "system": "🔒",
+    "system": "🖥️",
     "user": "👤",
 }
 

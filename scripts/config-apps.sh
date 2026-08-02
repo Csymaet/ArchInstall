@@ -19,3 +19,6 @@ if command -v zsh &>/dev/null; then sudo chsh -s /bin/zsh "$name"; fi
 
 # oh-my-zsh
 if command -v zsh &>/dev/null; then sh /usr/share/oh-my-zsh/tools/install.sh; fi
+
+# openclaw：初始化守护进程
+if command -v openclaw &>/dev/null; then openclaw onboard --install-daemon; fi

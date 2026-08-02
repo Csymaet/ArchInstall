@@ -13,7 +13,7 @@ from textual.screen import Screen
 from textual.widgets import DataTable, Footer, Label, RichLog
 
 from lib.constants import COLUMN_LABELS, STATUS_ICONS, TYPE_ICONS
-from lib.models import ConfigDiff, ConfigEntry
+from lib.models import CfgStatus, ConfigDiff, ConfigEntry
 from lib.sources import SourceError, gather, get_diff_text
 
 

@@ -6,21 +6,16 @@ set -euo pipefail
 url_installer=${1:?}
 name=$(whoami)
 
-# sddm 登录管理器配置
-if command -v sddm &>/dev/null; then
-    sudo mkdir -p /etc/sddm.conf.d
-    curl -Lf "$url_installer/files/root/sddm.conf" | sudo tee /etc/sddm.conf.d/sddm.conf >/dev/null
-fi
+# 从 configs.toml 驱动部署配置文件
+curl -Lf "$url_installer/tools/config-manager/configs.toml" > /tmp/configs.toml
+curl -Lf "$url_installer/tools/config-manager/deploy.py" > /tmp/deploy.py
+python /tmp/deploy.py /tmp/configs.toml "$url_installer" --stage config
 
 # docker：将用户加入 docker 组
 if command -v docker &>/dev/null; then sudo gpasswd -a "$name" docker; fi
 
 # zsh 设为默认 shell
 if command -v zsh &>/dev/null; then sudo chsh -s /bin/zsh "$name"; fi
-
-# i3 窗口管理器配置
-mkdir -p ~/.config/i3
-curl -Lf "$url_installer/files/eli/i3/config" > ~/.config/i3/config
 
 # oh-my-zsh
 if command -v zsh &>/dev/null; then sh /usr/share/oh-my-zsh/tools/install.sh; fi

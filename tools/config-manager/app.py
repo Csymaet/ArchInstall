@@ -68,7 +68,7 @@ class ConfigManagerApp(App):
         Binding("3", "filter_diff", "有差异"),
         Binding("4", "filter_system_only", "仅系统"),
         Binding("5", "filter_repo_only", "仅仓库"),
-        Binding("6", "filter_missing", "缺失"),
+        Binding("6", "filter_missing", "仅配置"),
         Binding("d", "show_diff", "对比"),
         Binding("j", "cursor_down", "↓"),
         Binding("k", "cursor_up", "↑"),
@@ -144,7 +144,7 @@ class ConfigManagerApp(App):
         if not self._diff:
             return
         c = self._diff.counts
-        parts = ["[1]全部", "[2]已同步", "[3]有差异", "[4]仅系统", "[5]仅仓库", "[6]缺失"]
+        parts = ["[1]全部", "[2]已同步", "[3]有差异", "[4]仅系统", "[5]仅仓库", "[6]仅配置"]
         counts = [c['all'], c['synced'], c['diff'], c['system_only'], c['repo_only'], c['missing']]
         active_map = {"all": 0, "synced": 1, "diff": 2, "system_only": 3, "repo_only": 4, "missing": 5}
         active = active_map[self.current_filter]

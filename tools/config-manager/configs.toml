@@ -209,6 +209,27 @@ mode   = "600"
 owner  = "eli:eli"
 
 [[configs]]
+source = "eli/opencode/AGENTS.md"
+target = "~/.config/opencode/AGENTS.md"
+stage  = "config"
+mode   = "644"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/opencode/opencode.json"
+target = "~/.config/opencode/opencode.json"
+stage  = "config"
+mode   = "644"
+owner  = "eli:eli"
+
+[[configs]]
+source = "eli/opencode/oh-my-opencode.jsonc"
+target = "~/.config/opencode/oh-my-opencode.jsonc"
+stage  = "config"
+mode   = "644"
+owner  = "eli:eli"
+
+[[configs]]
 source = "root/pacman.conf"
 target = "/etc/pacman.conf"
 stage  = "config"

@@ -51,6 +51,10 @@ class ConfigDiff:
         return [e for e in self.entries if e.status is CfgStatus.REPO_ONLY]
 
     @property
+    def missing(self) -> list[ConfigEntry]:
+        return [e for e in self.entries if e.status is CfgStatus.MISSING]
+
+    @property
     def counts(self) -> dict[str, int]:
         return {
             "all": len(self.entries),
@@ -58,4 +62,5 @@ class ConfigDiff:
             "diff": len(self.diff),
             "system_only": len(self.system_only),
             "repo_only": len(self.repo_only),
+            "missing": len(self.missing),
         }

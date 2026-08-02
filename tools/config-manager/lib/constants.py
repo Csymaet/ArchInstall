@@ -20,6 +20,7 @@ FILTER_SYNCED = "synced"
 FILTER_DIFF = "diff"
 FILTER_SYSTEM_ONLY = "system_only"
 FILTER_REPO_ONLY = "repo_only"
+FILTER_MISSING = "missing"
 
 STATUS_ICONS: dict[str, str] = {
     STATUS_SYNCED: "✅",

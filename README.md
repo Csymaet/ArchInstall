@@ -75,9 +75,11 @@ apps/                       软件列表 CSV（按分类）
   vm.csv                    虚拟机
 
 files/                      纯配置文件
-  i3/config                 i3 窗口管理器配置
-  sddm.conf                 SDDM 登录管理器配置
-  sudoers                   sudo 权限配置
+  root/                    系统级（部署到 /etc/，需 root）
+    sddm.conf              SDDM 登录管理器配置
+    sudoers                sudo 权限配置
+  eli/                     用户级（部署到 ~/）
+    i3/config              i3 窗口管理器配置
 
 scripts/                    可执行脚本（按需修改）
   enable-services.sh        启用系统服务

@@ -30,7 +30,7 @@ run() {
 
     # 设置 sudo 权限
     log INFO "SET USER PERMISSIONS" "$output"
-    curl -Lf "$url_installer/files/sudoers" > /etc/sudoers
+    curl -Lf "$url_installer/files/root/sudoers" > /etc/sudoers
 
     # 保存配置供 install_5 使用（URL + 软件列表）
     local selected_apps

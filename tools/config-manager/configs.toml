@@ -211,48 +211,48 @@ owner  = "eli:eli"
 [[configs]]
 source = "root/pacman.conf"
 target = "/etc/pacman.conf"
-stage  = "script"
+stage  = "config"
 mode   = "644"
 owner  = "root:root"
 
 [[configs]]
 source = "root/dhcpcd.conf"
 target = "/etc/dhcpcd.conf"
-stage  = "script"
+stage  = "config"
 mode   = "644"
 owner  = "root:root"
 
 [[configs]]
 source = "root/profile"
 target = "/etc/profile"
-stage  = "script"
+stage  = "config"
 mode   = "644"
 owner  = "root:root"
 
 [[configs]]
 source = "root/sysctl.d/99-sysctl.conf"
 target = "/etc/sysctl.d/99-sysctl.conf"
-stage  = "script"
+stage  = "config"
 mode   = "644"
 owner  = "root:root"
 
 [[configs]]
 source = "root/bluetooth-main.conf"
 target = "/etc/bluetooth/main.conf"
-stage  = "script"
+stage  = "config"
 mode   = "644"
 owner  = "root:root"
 
 [[configs]]
 source = "root/mirrorlist"
 target = "/etc/pacman.d/mirrorlist"
-stage  = "script"
+stage  = "config"
 mode   = "644"
 owner  = "root:root"
 
 [[configs]]
 source = "root/waydroid.cfg"
 target = "/var/lib/waydroid/waydroid.cfg"
-stage  = "script"
+stage  = "config"
 mode   = "644"
 owner  = "root:root"

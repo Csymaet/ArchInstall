@@ -6,19 +6,19 @@ set -euo pipefail
 url_installer=${1:?}
 name=$(whoami)
 
-# 从 configs.toml 驱动部署配置文件
-curl -Lf "$url_installer/tools/config-manager/configs.toml" > /tmp/configs.toml
-curl -Lf "$url_installer/tools/config-manager/deploy.py" > /tmp/deploy.py
-python /tmp/deploy.py /tmp/configs.toml "$url_installer" --stage config
-
 # docker：将用户加入 docker 组
 if command -v docker &>/dev/null; then sudo gpasswd -a "$name" docker; fi
 
 # zsh 设为默认 shell
 if command -v zsh &>/dev/null; then sudo chsh -s /bin/zsh "$name"; fi
 
-# oh-my-zsh
+# oh-my-zsh（会生成模板 .zshrc，必须在 deploy.py 之前）
 if command -v zsh &>/dev/null; then sh /usr/share/oh-my-zsh/tools/install.sh; fi
 
 # openclaw：初始化守护进程
 if command -v openclaw &>/dev/null; then openclaw onboard --install-daemon; fi
+
+# 从 configs.toml 驱动部署配置文件（最后执行，确保覆盖 oh-my-zsh 模板）
+curl -Lf "$url_installer/tools/config-manager/configs.toml" > /tmp/configs.toml
+curl -Lf "$url_installer/tools/config-manager/deploy.py" > /tmp/deploy.py
+python /tmp/deploy.py /tmp/configs.toml "$url_installer" --stage config
